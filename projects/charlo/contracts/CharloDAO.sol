@@ -10,9 +10,23 @@ contract CharloDAO {
     //     address payable requester;
     // }
     event ContributionReceived(address fromAddress, uint256 value);
+    event NewStakeholder(address stakeholder);
 
     mapping(address => uint256) public contributors;
-    mapping(address => uint256) public stakeHolders;
+    mapping(address => uint256) public stakeholders;
+
+    modifier makeStakeholder() {
+        if (stakeholders[msg.sender] == 0) {
+            uint256 contributed = contributors[msg.sender] + msg.value;
+            if (contributed >= 5 ether) {
+                stakeholders[msg.sender] = contributed;
+                emit NewStakeholder(msg.sender);
+            }
+        } else {
+            stakeholders[msg.sender] += msg.value;
+        }
+        _;
+    }
 
     // function getBalance() external view returns (uint256 balance) {
     //     balance = address(this).balance;
@@ -25,7 +39,7 @@ contract CharloDAO {
     //     receiver.transfer(amount);
     // }
 
-    receive() external payable {
+    receive() external payable makeStakeholder {
         contributors[msg.sender] += msg.value;
         emit ContributionReceived(msg.sender, msg.value);
     }
