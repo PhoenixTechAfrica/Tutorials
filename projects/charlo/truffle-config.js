@@ -24,6 +24,21 @@
 // const fs = require('fs');
 // const mnemonic = fs.readFileSync(".secret").toString().trim();
 
+const ContractKit = require('@celo/contractkit');
+const Web3 = require('web3');
+const getAccount = require("./utils/getAccount").getAccount;
+
+const web3 = new Web3('https://alfajores-forno.celo-testnet.org');
+const kit = ContractKit.newKitFromWeb3(web3);
+// const kit = Kit.newKit('https://forno.celo.org') // mainnet endpoint
+
+async function createAccount() {
+  let account = await getAccount();
+  kit.addAccount(account.privateKey);
+}
+
+createAccount();
+
 module.exports = {
   /**
    * Networks define how you connect to your ethereum client and let you set the
@@ -48,10 +63,8 @@ module.exports = {
      network_id: "*",       // Any network (default: none)
     },
     alfajores: {
-      host: "127.0.0.1",
-      port: 8545,
-      network_id: 44787
-      //from:
+      provider: kit.web3.currentProvider,
+      network_id: 44787,
     }
     // Another network with more advanced options...
     // advanced: {
