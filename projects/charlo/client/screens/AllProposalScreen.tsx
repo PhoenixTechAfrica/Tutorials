@@ -3,6 +3,8 @@ import * as React from 'react';
 import { StyleSheet, TouchableOpacity, View, LogBox, Button, Text } from 'react-native';
 import { RootStackParamList } from '../types';
 import { StackNavigationProp } from '@react-navigation/stack';
+import { useSelector } from 'react-redux';
+import { kit } from '../root';
 
 type ProfileScreenNavigationProp = StackNavigationProp<
   RootStackParamList,
@@ -14,7 +16,13 @@ type Props = {
 };
 
 export default function AllProposalScreen({ navigation }: Props) {
-  // const alert = useSelector(state => state.alert)
+  const wallet = useSelector((state:any) => state.wallet);
+
+  React.useEffect(() => {
+    if (!kit.defaultAccount) {
+      navigation.navigate("Root");
+    }
+  });
 
   return (
     <View style={styles.container}>
@@ -25,6 +33,9 @@ export default function AllProposalScreen({ navigation }: Props) {
         title='Create a Proposal'
         onPress={() => navigation.navigate('CreateProposalScreen')}
         />
+
+        <Text>{wallet.address}</Text>
+        <Text>{wallet.phone}</Text>
        
     </View>
   );

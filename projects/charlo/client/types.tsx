@@ -23,3 +23,17 @@ export type TabOneParamList = {
 export type TabTwoParamList = {
   TabTwoScreen: undefined;
 };
+
+export type Proposal = {
+  id: string
+  description: string,
+  charityAddress: string,
+  amount: string
+  requester: string,
+  livePeriod: string,
+  votesFor: string,
+  votesAgainst: string,
+  vottingPassed: boolean,
+  paid: boolean,
+  paidBy: string
+}

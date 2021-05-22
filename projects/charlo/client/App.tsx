@@ -1,12 +1,16 @@
-import 'react-native-gesture-handler';
+import './global';
+import * as eva from '@eva-design/eva';
+import { ApplicationProvider } from '@ui-kitten/components'
+
 import { StatusBar } from 'expo-status-bar';
 import React from 'react';
-import { NavigationContainer } from '@react-navigation/native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { Provider } from "react-redux";
 
 import useCachedResources from './hooks/useCachedResources';
 import useColorScheme from './hooks/useColorScheme';
 import Navigation from './navigation';
+import { store } from "./store/store";
 
 export default function App() {
   const isLoadingComplete = useCachedResources();
@@ -16,12 +20,14 @@ export default function App() {
     return null;
   } else {
     return (
-      // <NavigationContainer>
-      <SafeAreaProvider>
-        <Navigation colorScheme={colorScheme} />
-        <StatusBar />
-      </SafeAreaProvider>
-      // </NavigationContainer>
+      <Provider store={store}>
+        <ApplicationProvider {...eva} theme={eva.light}>
+          <SafeAreaProvider>
+            <Navigation colorScheme={colorScheme} />
+            <StatusBar />
+          </SafeAreaProvider>
+        </ApplicationProvider>
+      </Provider>
     );
   }
 }

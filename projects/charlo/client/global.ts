@@ -13,7 +13,7 @@ if (typeof global.self === 'undefined') {
 }
 
 if (typeof btoa === 'undefined') {
-  global.btoa = function(str) {
+  global.btoa = function(str: string) {
     return new Buffer(str, 'binary').toString('base64')
   }
 }
