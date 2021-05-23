@@ -4,8 +4,9 @@ import { createLogger } from "redux-logger";
 
 import { alert } from "./reducers/alertReducer";
 import { wallet } from "./reducers/walletReducer";
+import { proposal } from "./reducers/proposalReducer";
 
-const rootReducer = combineReducers({alert, wallet});
+const rootReducer = combineReducers({alert, wallet, proposal});
 const loggerMiddleware = createLogger();
 
 export const store = createStore(

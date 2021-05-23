@@ -34,7 +34,7 @@ const kit = ContractKit.newKitFromWeb3(web3);
 
 async function createAccount() {
   let account = await getAccount();
-  kit.addAccount(account.privateKey);
+  kit.connection.addAccount(account.privateKey);
 }
 
 createAccount();
@@ -63,7 +63,7 @@ module.exports = {
      network_id: "*",       // Any network (default: none)
     },
     alfajores: {
-      provider: kit.web3.currentProvider,
+      provider: kit.connection.web3.currentProvider,
       network_id: 44787,
     }
     // Another network with more advanced options...

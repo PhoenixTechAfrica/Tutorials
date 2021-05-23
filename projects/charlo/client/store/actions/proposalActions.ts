@@ -22,13 +22,13 @@ function createProposal(proposal: Proposal) {
             const dappName = "Charlo";
             const callback = Linking.makeUrl("two") // Fix: should navigate to viewproposal screen
 
-            const txObject = (await contractInstance).methods.newProposal(proposal.description, proposal.amount);
+            const txObject = (await contractInstance).methods.createProposal(proposal.description, proposal.charityAddress, proposal.amount);
 
             requestTxSig(
                 kit,
                 [
                     {
-                        from: kit.defaultAccount || proposal.requester,
+                        from: kit.defaultAccount || proposal.proposer,
                         to: (await contractInstance).options.address,
                         tx: txObject,
                         feeCurrency: FeeCurrency.cUSD
@@ -49,9 +49,9 @@ function createProposal(proposal: Proposal) {
         }
     }
 
-    function request(message: string) { return { type: proposalConstants.GET_ALL_PROPOSAL_REQUEST, message } };
-    function success(res: object) { return { type: proposalConstants.GET_ALL_PROPOSAL_SUCCESS, res } };
-    function failure(error: any) { return { type: proposalConstants.GET_ALL_PROPOSAL_FAILURE, error } };
+    function request(message: string) { return { type: proposalConstants.CREATE_PROPOSAL_REQUEST, message } };
+    function success(res: object) { return { type: proposalConstants.CREATE_PROPOSAL_SUCCESS, res } };
+    function failure(error: any) { return { type: proposalConstants.CREATE_PROPOSAL_FAILURE, error } };
 }
 
 function getAllProposals() {
@@ -59,7 +59,7 @@ function getAllProposals() {
         dispatch(request("Fetching all proposals..."));
 
         try {
-            const allProposals = (await contractInstance).methods.getAllProposals().call();
+            const allProposals = (await contractInstance).methods.getProposals().call();
             dispatch(success(allProposals));
         } catch (error) {
             failure(error);

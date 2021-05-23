@@ -3,8 +3,8 @@ import { newKitFromWeb3 } from "@celo/contractkit";
 
 import CharloDAO from "./contracts/CharloDAO.json";
 
-// const provider = "https://alfajores-forno.celo-testnet.org";
-export const provider = "http://localhost:7545";
+const provider = "https://alfajores-forno.celo-testnet.org";
+// export const provider = "http://localhost:7545";
 
 const web3 = new Web3(provider);
 const kit = newKitFromWeb3(web3);

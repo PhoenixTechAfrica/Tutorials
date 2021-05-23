@@ -1,10 +1,13 @@
 import { StackScreenProps } from '@react-navigation/stack';
 import * as React from 'react';
-import { StyleSheet, TouchableOpacity, View, LogBox, Button, Text } from 'react-native';
+import { StyleSheet, TouchableOpacity, View, LogBox, Button, Text, TextInput } from 'react-native';
 import { RootStackParamList } from '../types';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { useSelector } from 'react-redux';
-import { kit } from '../root';
+import { useDispatch, useSelector } from 'react-redux';
+import { kit, web3 } from '../root';
+import { walletActions } from '../store/actions/walletAction';
+import BigNumber from 'bignumber.js';
+import { proposalActions } from '../store/actions/proposalActions';
 
 type ProfileScreenNavigationProp = StackNavigationProp<
   RootStackParamList,
@@ -16,7 +19,22 @@ type Props = {
 };
 
 export default function AllProposalScreen({ navigation }: Props) {
+  const dispatch = useDispatch();
   const wallet = useSelector((state:any) => state.wallet);
+  const [amount, setAmount] = React.useState('');
+  const [id, setId] = React.useState('');
+
+  const contribute = async () => {
+    dispatch(walletActions.contribute(web3.utils.toWei(amount, 'ether').toString())); 
+  }
+
+  const getAllProposal = async () => {
+    dispatch(proposalActions.getAllProposals());
+  }
+
+  const getProposal = async () => {
+    dispatch(proposalActions.getProposal(id));
+  }
 
   React.useEffect(() => {
     if (!kit.defaultAccount) {
@@ -36,6 +54,35 @@ export default function AllProposalScreen({ navigation }: Props) {
 
         <Text>{wallet.address}</Text>
         <Text>{wallet.phone}</Text>
+
+        <TextInput
+          style={{  borderColor: 'black', borderWidth: 1, backgroundColor: 'white' }}
+          placeholder="input amount to contribute"
+          onChangeText={setAmount}
+          value={amount}
+          />
+
+        <Button
+          title='Contribute'
+          onPress={contribute}
+          />
+
+        <Button
+          title='Get All'
+          onPress={getAllProposal}
+          />
+
+        <TextInput
+          style={{  borderColor: 'black', borderWidth: 1, backgroundColor: 'white' }}
+          placeholder="input proposal id"
+          onChangeText={setId}
+          value={id}
+          />
+
+        <Button
+          title='Get Proposal'
+          onPress={getProposal}
+          />
        
     </View>
   );
