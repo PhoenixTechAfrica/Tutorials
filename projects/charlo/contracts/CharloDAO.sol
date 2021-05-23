@@ -1,117 +1,156 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-contract CharloDAO {
+import "@openzeppelin/contracts/access/AccessControl.sol";
+
+/// @title CharloDAO
+/// @author TSegun Ogundipe David
+contract CharloDAO is AccessControl {
+    bytes32 public constant CONTRIBUTOR_ROLE = keccak256("CONTRIBUTOR");
+    bytes32 public constant STAKEHOLDER_ROLE = keccak256("STAKEHOLDER");
+    // Constant variable that holds the number of days a proposal can be voted on in seconds.
+    // `weeks` is a suffix provided by solidity. It translates to the total seconds in a week.
     uint32 constant minimumVotingPeriod = 1 weeks;
-    uint256 numOfCharities;
-    uint256 numOfShareholders;
+    // This variable is incremented everytime a new charity proposal is added.
+    // It is needed to iterate through the charyty proposals as solidity doesn't provide a way to step through mappings.
+    uint256 numOfProposals;
+    // This variable is incremented everytime a new charity proposal is added.
+    // It is needed to iterate through the charyty proposals as solidity doesn't provide a way to step through mappings.
+    uint256 numOfStakeholders;
 
-    mapping(uint256 => CharityRequest) public charityRequests;
-    mapping(address => uint256[]) public shareholderVotes;
+    /// @notice Holds all the charity proposals made in the DAO.
+    mapping(uint256 => CharityProposal) public charityProposals;
+    /// @notice Holds all the stakeholders' address and their total contributions.
+    mapping(address => uint256[]) public stakeholderVotes;
+    /// @notice Holds all the contributors' address and their total contributions.
     mapping(address => uint256) public contributors;
-    mapping(address => uint256) public shareholders;
+    /// Holds all the stakeholders' address and their total contributions.
+    mapping(address => uint256) public stakeholders;
 
-    struct CharityRequest {
+    /// @notice A new type definition that holds the necessary variables that makes up a charity proposal.
+    struct CharityProposal {
         uint256 id;
-        address payable requester;
-        string description;
         uint256 amount;
         uint256 livePeriod;
         uint256 votesFor;
         uint256 votesAgainst;
+        string description;
         bool votingPassed;
         bool paid;
+        address payable proposer;
         address paidBy;
     }
 
-    event ContributionReceived(address fromAddress, uint256 value);
-    event NewShareholder(address shareholder);
-    event NewCharityRequest(address requester, uint256 amount);
+    /// @notice Event that is emitted when a contribution is received.
+    /// @param fromAddress The address the contribution came from.
+    /// @param amount The amount of celo that was sent.
+    event ContributionReceived(address fromAddress, uint256 amount);
+    /// @notice Event that is emitted when a new proposal is added to the list of proposals.
+    /// @param proposer The address of the contributer/stakeholder that created the proposal.
+    /// @param amount The amount that is requested for.
+    event NewCharityProposal(address proposer, uint256 amount);
 
-    modifier makeShareholder() {
-        if (shareholders[msg.sender] == 0) {
-            uint256 contributed = contributors[msg.sender] + msg.value;
-            if (contributed >= 5 ether) {
-                shareholders[msg.sender] = contributed;
-                numOfShareholders++;
-                emit NewShareholder(msg.sender);
-            }
-        } else {
-            shareholders[msg.sender] += msg.value;
-        }
+    modifier onlyStakeholder(string message) {
+        require(hasRole(STAKEHOLDER_ROLE, msg.sender), message);
         _;
     }
 
-    modifier onlyShareholder() {
-        bool found = false;
-        for (uint256 i = 0; i < numOfShareholders; i++) {
-            if (shareholders[msg.sender] != 0) {
-                found = true;
-                break;
-            }
-        }
-
-        if (!found) revert("Only shareholders are allowed to vote");
-
+    modifier onlyContributor(string message) {
+        require(hasRole(CONTRIBUTOR_ROLE, msg.sender), message);
         _;
     }
 
-    function newCharityRequest(string calldata description, uint256 amount)
+    /// @notice Adds a new proposal to the `charityProposals` mapping.
+    /// @param description A brief description of why the proposal should be voted for.
+    /// @param amount The amount of celo.
+    function newCharityProposal(string calldata description, uint256 amount)
         external
+        onlyStakeholder
     {
-        uint256 charityId = numOfCharities++;
-        CharityRequest storage request = charityRequests[charityId];
-        request.id = charityId;
-        request.requester = payable(msg.sender);
-        request.description = description;
-        request.amount = amount;
-        request.livePeriod = block.timestamp + minimumVotingPeriod;
+        uint256 proposalId = numOfProposals++;
+        CharityProposal storage proposal = charityProposals[proposalId];
+        proposal.id = proposalId;
+        proposal.proposer = payable(msg.sender);
+        proposal.description = description;
+        proposal.amount = amount;
+        proposal.livePeriod = block.timestamp + minimumVotingPeriod;
 
-        emit NewCharityRequest(msg.sender, amount);
+        emit NewCharityProposal(msg.sender, amount);
     }
 
-    function vote(uint256 requestId, bool supportRequest)
+    /// @notice Vote for a particular proposal. Only stakeholders are allowed to vote.
+    /// @param proposalId The id of the charity proposal being voted for.
+    /// @param supportProposal true to vote for and false against.
+    function vote(uint256 proposalId, bool supportProposal)
         external
-        onlyShareholder
+        onlyStakeholder
     {
-        CharityRequest storage charityRequest = charityRequests[requestId];
+        CharityProposal storage charityProposal = charityProposals[proposalId];
 
-        if (charityRequest.votingPassed)
-            revert("Voting period has passed on this request");
+        votable(charityProposal);
 
-        if (charityRequest.livePeriod <= block.timestamp) {
-            charityRequest.votingPassed = true;
-            revert("This request can no longer be voted on");
+        if (supportProposal) charityProposal.votesFor++;
+        else charityProposal.votesAgainst++;
+
+        stakeholderVotes[msg.sender].push(charityProposal.id);
+    }
+
+    /// @notice Contains some conditionals that validate a proposal to be voted on.
+    /// @param charityProposal a parameter just like in doxygen (must be followed by parameter name)
+    function votable(CharityProposal storage charityProposal) private {
+        if (charityProposal.votingPassed)
+            revert("Voting period has passed on this proposal");
+
+        if (charityProposal.livePeriod <= block.timestamp) {
+            charityProposal.votingPassed = true;
+            revert("This proposal can no longer be voted on");
         }
 
-        uint256[] memory tempVotes = shareholderVotes[msg.sender];
+        uint256[] memory tempVotes = stakeholderVotes[msg.sender];
         for (uint256 votes = 0; votes < tempVotes.length; votes++) {
-            if (requestId == tempVotes[votes])
-                revert("Shareholder already voted for this request");
+            if (charityProposal.id == tempVotes[votes])
+                revert("This stakeholder already voted for this proposal");
         }
-
-        if (supportRequest) charityRequest.votesFor++;
-        else charityRequest.votesAgainst++;
-
-        shareholderVotes[msg.sender].push(charityRequest.id);
     }
 
-    function payRequester(uint256 requestId) external onlyShareholder {
-        CharityRequest storage charityRequest = charityRequests[requestId];
+    /// @notice This function makes payent to a Charity after the voting period of the proposal. Can only be called by a Stakeholder.
+    /// @param proposalId The id of the proposal to pay to.
+    function payCharity(uint256 proposalId) external onlyStakeholder {
+        CharityProposal storage charityProposal = charityProposals[proposalId];
 
-        if (charityRequest.paid)
-            revert("Payment has been made to this requester");
+        if (charityProposal.paid)
+            revert("Payment has been made to this proposer");
 
-        if (charityRequest.votesFor <= charityRequest.votesAgainst)
+        if (charityProposal.votesFor <= charityProposal.votesAgainst)
             revert(
-                "The request does not have the required amount of votes to pass"
+                "The proposal does not have the required amount of votes to pass"
             );
 
-        return charityRequest.requester.transfer(charityRequest.amount);
+        return charityProposal.proposer.transfer(charityProposal.amount);
     }
 
-    receive() external payable makeShareholder {
-        contributors[msg.sender] += msg.value;
-        emit ContributionReceived(msg.sender, msg.value);
+    receive() external payable {
+        makeStakeholder();
+    }
+
+    /// @notice This function adds a new stakeholder if the total contribution is >= 200 celo
+    function makeStakeholder() private {
+        address account = msg.sender;
+        uint256 amountContributed = msg.value;
+        if (!hasRole(STAKEHOLDER_ROLE, account)) {
+            uint256 totalContributed =
+                contributors[account] + amountContributed;
+            if (totalContributed >= 200 ether) {
+                stakeholders[account] = totalContributed;
+                contributors[account] += amountContributed;
+                _setupRole(STAKEHOLDER_ROLE, account);
+            } else {
+                contributors[account] += amountContributed;
+                _setupRole(CONTRIBUTOR_ROLE, account);
+            }
+        } else {
+            contributors[account] += amountContributed;
+            stakeholders[account] += amountContributed;
+        }
     }
 }
