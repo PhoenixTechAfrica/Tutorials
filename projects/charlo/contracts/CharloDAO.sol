@@ -113,7 +113,7 @@ contract CharloDAO is ReentrancyGuard, AccessControl {
         uint256[] memory tempVotes = stakeholderVotes[msg.sender];
         for (uint256 votes = 0; votes < tempVotes.length; votes++) {
             if (charityProposal.id == tempVotes[votes])
-                revert("This stakeholder already voted for this proposal");
+                revert("This stakeholder already voted on this proposal");
         }
     }
 
@@ -152,6 +152,7 @@ contract CharloDAO is ReentrancyGuard, AccessControl {
                 stakeholders[account] = totalContributed;
                 contributors[account] += amountContributed;
                 _setupRole(STAKEHOLDER_ROLE, account);
+                _setupRole(CONTRIBUTOR_ROLE, account);
             } else {
                 contributors[account] += amountContributed;
                 _setupRole(CONTRIBUTOR_ROLE, account);

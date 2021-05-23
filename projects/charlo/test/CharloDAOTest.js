@@ -20,15 +20,13 @@ contract("CharloDAO Contribution Test", accounts => {
     const instance = await CharloDAO.new();
     const fromAddress = accounts[1];
     const contractAddress = instance.address;
-    const amount = "2000000000000000000"; // 2 celo
+    const amount = "20000000000000000000"; // 20 celo
 
     const send = await web3.eth.sendTransaction({from: fromAddress, to: contractAddress, value: amount});
     
-    const contributorBalance = await instance.contributors(fromAddress);
-    const stakeholderBalance = await instance.stakeholders(fromAddress);
+    const contributorBalance = await instance.getContributorBalance(fromAddress, {from: fromAddress});
 
     assert.equal(contributorBalance.toString(), amount);
-    assert.equal(stakeholderBalance.toString(), "0");
   });
 
   it("should make contributor a stakeholder", async () => {
@@ -39,8 +37,8 @@ contract("CharloDAO Contribution Test", accounts => {
 
     await web3.eth.sendTransaction({from: fromAddress, to: contractAddress, value: amount, gasLimit: 1000000});
     
-    const stakeholderBalance = await instance.stakeholders(fromAddress);
-    const contributorBalance = await instance.contributors(fromAddress);
+    const stakeholderBalance = await instance.getStakeholderBalance(fromAddress, {from: fromAddress});
+    const contributorBalance = await instance.getContributorBalance(fromAddress, {from: fromAddress});
     
     assert.equal(stakeholderBalance.toString(), amount);
     assert.equal(contributorBalance.toString(), amount);
@@ -51,13 +49,13 @@ contract("CharloDAO Contribution Test", accounts => {
     const contractAddress = instance.address;
     const fromAddress = accounts[3];
     const charityAddress = accounts[4];
-    const amount = "200000000000000000000"; // 20 celo
+    const amount = "200000000000000000000"; // 200 celo
     const amountRequested = "1000000000000000000";
 
     await web3.eth.sendTransaction({from: fromAddress, to: contractAddress, value: amount, gasLimit: 1000000});
     await instance.createProposal("My very first charity proposal", charityAddress, amountRequested, {from: fromAddress});
 
-    const createdProposal = await instance.charityProposals(0);
+    const createdProposal = await instance.getProposal(0);
 
     assert.equal(createdProposal.description, "My very first charity proposal");
     assert.equal(createdProposal.proposer, fromAddress);
@@ -66,10 +64,11 @@ contract("CharloDAO Contribution Test", accounts => {
 
   it("should vote on proposal", async () => {
     const instance = await CharloDAO.new();
+    const contractAddress = instance.address;
     const voterAddress = accounts[5];
     const requesterAddress = accounts[6]
     const charityAddress = accounts[7]
-    const amountToContribute = "200000000000000000000"; // 20 celo
+    const amountToContribute = "200000000000000000000"; // 200 celo
     const voterAmount = "200000000000000000000"; // 200 celo
     const amountRequested = "5000000000000000000"; // 5 celo
 
@@ -81,8 +80,8 @@ contract("CharloDAO Contribution Test", accounts => {
 
     await instance.vote(0, true, {from: voterAddress, gasLimit: 1000000});
 
-    const proposal = await instance.charityProposals(0);
-    const voted = await instance.stakeholderVotes(voterAddress, 0);
+    const proposal = await instance.getProposal(0);
+    const voted = (await instance.getStakeholderVotes(voterAddress))[0];
 
     assert.equal(voted, 0);
     assert.equal(proposal.votesFor, 1);
@@ -102,12 +101,12 @@ contract("CharloDAO Contribution Test", accounts => {
     await web3.eth.sendTransaction({from: fromAddress, to: contractAddress, value: amount, gasLimit: 1000000});
     await instance.createProposal("My very first charity proposal", charityAddress, amountRequested, {from: requesterAddress});
 
-    let proposal = await instance.charityProposals(0);
+    let proposal = await instance.getProposal(0);
 
     const voteResult = await instance.vote(proposal.id, true, {from: fromAddress, gasLimit: 1000000});
 
     const paymentResult = await instance.payCharity(proposal.id, {from: fromAddress});
-    proposal = await instance.charityProposals(0);
+    proposal = await instance.getProposal(0);
 
     assert.equal(voteResult.receipt.status, true);
     assert.equal(proposal.paid, true);
