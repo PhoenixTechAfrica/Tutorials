@@ -7,7 +7,7 @@ contract("CharloDAO Contribution Test", accounts => {
     const instance = await CharloDAO.new();
     const fromAddress = accounts[0];
     const contractAddress = instance.address;
-    const amount = 2000000000000000000; // 2 celo
+    const amount = "2000000000000000000"; // 2 celo
 
     const send = await web3.eth.sendTransaction({from: fromAddress, to: contractAddress, value: amount});
     
@@ -20,7 +20,7 @@ contract("CharloDAO Contribution Test", accounts => {
     const instance = await CharloDAO.new();
     const fromAddress = accounts[1];
     const contractAddress = instance.address;
-    const amount = 2000000000000000000; // 2 celo
+    const amount = "2000000000000000000"; // 2 celo
 
     const send = await web3.eth.sendTransaction({from: fromAddress, to: contractAddress, value: amount});
     
@@ -35,7 +35,7 @@ contract("CharloDAO Contribution Test", accounts => {
     const instance = await CharloDAO.new();
     const fromAddress = accounts[2];
     const contractAddress = instance.address;
-    const amount = 200000000000000000000; // 200 celo
+    const amount = "200000000000000000000"; // 200 celo
 
     await web3.eth.sendTransaction({from: fromAddress, to: contractAddress, value: amount, gasLimit: 1000000});
     
@@ -50,11 +50,12 @@ contract("CharloDAO Contribution Test", accounts => {
     const instance = await CharloDAO.new();
     const contractAddress = instance.address;
     const fromAddress = accounts[3];
-    const amount = 20000000000000000000; // 20 celo
+    const charityAddress = accounts[4];
+    const amount = "200000000000000000000"; // 20 celo
     const amountRequested = "1000000000000000000";
 
     await web3.eth.sendTransaction({from: fromAddress, to: contractAddress, value: amount, gasLimit: 1000000});
-    await instance.newCharityProposal("My very first charity proposal", amountRequested, {from: fromAddress});
+    await instance.createProposal("My very first charity proposal", charityAddress, amountRequested, {from: fromAddress});
 
     const createdProposal = await instance.charityProposals(0);
 
@@ -65,22 +66,23 @@ contract("CharloDAO Contribution Test", accounts => {
 
   it("should vote on proposal", async () => {
     const instance = await CharloDAO.new();
-    const voterAddress = accounts[4];
-    const requesterAddress = accounts[5]
-    const amountToContribute = 20000000000000000000; // 20 celo
-    const voterAmount = 200000000000000000000; // 200 celo
+    const voterAddress = accounts[5];
+    const requesterAddress = accounts[6]
+    const charityAddress = accounts[7]
+    const amountToContribute = "200000000000000000000"; // 20 celo
+    const voterAmount = "200000000000000000000"; // 200 celo
     const amountRequested = "5000000000000000000"; // 5 celo
 
     await web3.eth.sendTransaction({from: voterAddress, to: instance.address, value: voterAmount, gasLimit: 1000000});
     await web3.eth.sendTransaction({from: requesterAddress, to: instance.address, value: amountToContribute, gasLimit: 1000000});
-    await instance.newCharityProposal("My very first charity proposal", amountRequested, {from: requesterAddress});
+    await instance.createProposal("My very first charity proposal", charityAddress, amountRequested, {from: requesterAddress});
 
     
 
     await instance.vote(0, true, {from: voterAddress, gasLimit: 1000000});
 
     const proposal = await instance.charityProposals(0);
-    const voted = await instance.stakeholderVotes(accounts[4], 0);
+    const voted = await instance.stakeholderVotes(voterAddress, 0);
 
     assert.equal(voted, 0);
     assert.equal(proposal.votesFor, 1);
@@ -89,24 +91,25 @@ contract("CharloDAO Contribution Test", accounts => {
 
   it("should pay charity", async () => {
     const instance = await CharloDAO.new();
-    const fromAddress = accounts[6];
+    const fromAddress = accounts[8];
     const contractAddress = instance.address;
-    const requesterAddress = accounts[7]
-    const amount = 200000000000000000000; // 200 celo
+    const requesterAddress = accounts[9]
+    const charityAddress = accounts[0]
+    const amount = "200000000000000000000"; // 200 celo
     const amountRequested = "20000000000000000000"; // 20 celo
 
     await web3.eth.sendTransaction({from: requesterAddress, to: contractAddress, value: amount, gasLimit: 1000000});
     await web3.eth.sendTransaction({from: fromAddress, to: contractAddress, value: amount, gasLimit: 1000000});
-    await instance.newCharityProposal("My very first charity proposal", amountRequested, {from: requesterAddress});
+    await instance.createProposal("My very first charity proposal", charityAddress, amountRequested, {from: requesterAddress});
 
-    const proposal = await instance.charityProposals(0);
+    let proposal = await instance.charityProposals(0);
 
     const voteResult = await instance.vote(proposal.id, true, {from: fromAddress, gasLimit: 1000000});
 
     const paymentResult = await instance.payCharity(proposal.id, {from: fromAddress});
+    proposal = await instance.charityProposals(0);
 
     assert.equal(voteResult.receipt.status, true);
-    assert.equal(paymentResult.receipt.status, true);
     assert.equal(proposal.paid, true);
   });
 });

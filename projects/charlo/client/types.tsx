@@ -29,7 +29,7 @@ export type Proposal = {
   description: string,
   charityAddress: string,
   amount: string
-  requester: string,
+  proposer: string,
   livePeriod: string,
   votesFor: string,
   votesAgainst: string,

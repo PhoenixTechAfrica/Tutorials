@@ -2,30 +2,28 @@
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/access/AccessControl.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 /// @title CharloDAO
-/// @author TSegun Ogundipe David
-contract CharloDAO is AccessControl {
+/// @author Segun Ogundipe David
+contract CharloDAO is ReentrancyGuard, AccessControl {
     bytes32 public constant CONTRIBUTOR_ROLE = keccak256("CONTRIBUTOR");
     bytes32 public constant STAKEHOLDER_ROLE = keccak256("STAKEHOLDER");
     // Constant variable that holds the number of days a proposal can be voted on in seconds.
     // `weeks` is a suffix provided by solidity. It translates to the total seconds in a week.
     uint32 constant minimumVotingPeriod = 1 weeks;
     // This variable is incremented everytime a new charity proposal is added.
-    // It is needed to iterate through the charyty proposals as solidity doesn't provide a way to step through mappings.
+    // It is needed to iterate through the charty proposals as solidity doesn't provide a way to step through mappings.
     uint256 numOfProposals;
-    // This variable is incremented everytime a new charity proposal is added.
-    // It is needed to iterate through the charyty proposals as solidity doesn't provide a way to step through mappings.
-    uint256 numOfStakeholders;
 
     /// @notice Holds all the charity proposals made in the DAO.
-    mapping(uint256 => CharityProposal) public charityProposals;
+    mapping(uint256 => CharityProposal) private charityProposals;
     /// @notice Holds all the stakeholders' address and their total contributions.
-    mapping(address => uint256[]) public stakeholderVotes;
+    mapping(address => uint256[]) private stakeholderVotes;
     /// @notice Holds all the contributors' address and their total contributions.
-    mapping(address => uint256) public contributors;
+    mapping(address => uint256) private contributors;
     /// Holds all the stakeholders' address and their total contributions.
-    mapping(address => uint256) public stakeholders;
+    mapping(address => uint256) private stakeholders;
 
     /// @notice A new type definition that holds the necessary variables that makes up a charity proposal.
     struct CharityProposal {
@@ -37,41 +35,49 @@ contract CharloDAO is AccessControl {
         string description;
         bool votingPassed;
         bool paid;
-        address payable proposer;
+        address payable charityAddress;
+        address proposer;
         address paidBy;
     }
 
     /// @notice Event that is emitted when a contribution is received.
     /// @param fromAddress The address the contribution came from.
     /// @param amount The amount of celo that was sent.
-    event ContributionReceived(address fromAddress, uint256 amount);
+    event ContributionReceived(address indexed fromAddress, uint256 amount);
     /// @notice Event that is emitted when a new proposal is added to the list of proposals.
     /// @param proposer The address of the contributer/stakeholder that created the proposal.
     /// @param amount The amount that is requested for.
-    event NewCharityProposal(address proposer, uint256 amount);
+    event NewCharityProposal(address indexed proposer, uint256 amount);
+    /// @notice Event that is emitted when payment is made to a charity.
+    /// @param stakeholder The stakeholder tha made the payment.
+    /// @param charityAddress The charity that payment was made to.
+    /// @param amount The amount that was paid.
+    event PaymentTransfered(address indexed stakeholder, address indexed charityAddress, uint256 amount);
 
-    modifier onlyStakeholder(string message) {
+    modifier onlyStakeholder(string memory message) {
         require(hasRole(STAKEHOLDER_ROLE, msg.sender), message);
         _;
     }
 
-    modifier onlyContributor(string message) {
+    modifier onlyContributor(string memory message) {
         require(hasRole(CONTRIBUTOR_ROLE, msg.sender), message);
         _;
     }
 
     /// @notice Adds a new proposal to the `charityProposals` mapping.
     /// @param description A brief description of why the proposal should be voted for.
+    /// @param charityAddress The address of the charity.
     /// @param amount The amount of celo.
-    function newCharityProposal(string calldata description, uint256 amount)
+    function createProposal(string calldata description, address charityAddress, uint256 amount)
         external
-        onlyStakeholder
+        onlyStakeholder("Only stakeholders are allowed to create proposals")
     {
         uint256 proposalId = numOfProposals++;
         CharityProposal storage proposal = charityProposals[proposalId];
         proposal.id = proposalId;
         proposal.proposer = payable(msg.sender);
         proposal.description = description;
+        proposal.charityAddress = payable(charityAddress);
         proposal.amount = amount;
         proposal.livePeriod = block.timestamp + minimumVotingPeriod;
 
@@ -83,7 +89,7 @@ contract CharloDAO is AccessControl {
     /// @param supportProposal true to vote for and false against.
     function vote(uint256 proposalId, bool supportProposal)
         external
-        onlyStakeholder
+        onlyStakeholder("Only stakeholders are allowed to vote")
     {
         CharityProposal storage charityProposal = charityProposals[proposalId];
 
@@ -98,12 +104,10 @@ contract CharloDAO is AccessControl {
     /// @notice Contains some conditionals that validate a proposal to be voted on.
     /// @param charityProposal a parameter just like in doxygen (must be followed by parameter name)
     function votable(CharityProposal storage charityProposal) private {
-        if (charityProposal.votingPassed)
-            revert("Voting period has passed on this proposal");
 
-        if (charityProposal.livePeriod <= block.timestamp) {
+        if (charityProposal.votingPassed || charityProposal.livePeriod <= block.timestamp) {
             charityProposal.votingPassed = true;
-            revert("This proposal can no longer be voted on");
+            revert("Voting period has passed on this proposal");
         }
 
         uint256[] memory tempVotes = stakeholderVotes[msg.sender];
@@ -115,18 +119,22 @@ contract CharloDAO is AccessControl {
 
     /// @notice This function makes payent to a Charity after the voting period of the proposal. Can only be called by a Stakeholder.
     /// @param proposalId The id of the proposal to pay to.
-    function payCharity(uint256 proposalId) external onlyStakeholder {
+    function payCharity(uint256 proposalId) external onlyStakeholder("Only stakeholders are allowed to make payments") {
         CharityProposal storage charityProposal = charityProposals[proposalId];
 
         if (charityProposal.paid)
-            revert("Payment has been made to this proposer");
+            revert("Payment has been made to this charity");
 
         if (charityProposal.votesFor <= charityProposal.votesAgainst)
             revert(
                 "The proposal does not have the required amount of votes to pass"
             );
+        
+        charityProposal.paid = true;
 
-        return charityProposal.proposer.transfer(charityProposal.amount);
+        emit PaymentTransfered(msg.sender, charityProposal.charityAddress, charityProposal.amount);
+
+        return charityProposal.charityAddress.transfer(charityProposal.amount);
     }
 
     receive() external payable {
@@ -152,5 +160,37 @@ contract CharloDAO is AccessControl {
             contributors[account] += amountContributed;
             stakeholders[account] += amountContributed;
         }
+    }
+
+    function getProposals() view public returns (CharityProposal[] memory props) {
+        props = new CharityProposal[](numOfProposals + 1);
+
+        for (uint256 index = 0; index < numOfProposals; index++) {
+            props[index] = charityProposals[index];
+        }
+    }
+
+    function getProposal(uint256 proposalId) view public returns (CharityProposal memory) {
+        return charityProposals[proposalId];
+    }
+
+    function getStakeholderVotes(address stakeholder) view public returns (uint256[] memory) {
+        return stakeholderVotes[stakeholder];
+    }
+
+    function getStakeholderBalance(address stakeholder) view public onlyStakeholder("User is not a stakeholder") returns (uint256) {
+        return stakeholders[stakeholder];
+    }
+
+    function isStakeholder(address stakeholder) view public returns (bool) {
+        return stakeholders[stakeholder] > 0;
+    }
+
+    function getContributorBalance(address contributor) view public onlyContributor("User is not a contributor") returns (uint256) {
+        return contributors[contributor];
+    }
+
+    function isContributor(address contributor) view public returns (bool) {
+        return contributors[contributor] > 0;
     }
 }
