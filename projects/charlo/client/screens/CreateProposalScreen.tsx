@@ -1,35 +1,72 @@
 import { StackScreenProps } from '@react-navigation/stack';
 import * as React from 'react';
-import { StyleSheet, TouchableOpacity, View, Text, TextInput } from 'react-native';
+import { StyleSheet, TouchableOpacity, View, Text, TextInput, Button } from 'react-native';
 import { RootStackParamList } from '../types';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { useDispatch, useSelector } from 'react-redux';
+import { kit, web3 } from '../root';
+import { walletActions } from '../store/actions/walletAction';
+import BigNumber from 'bignumber.js';
+import { proposalActions } from '../store/actions/proposalActions';
 
-export default function CreateProposalScreen() {
+type ProfileScreenNavigationProp = StackNavigationProp<
+  RootStackParamList,
+  'Root'
+>;
+
+type Props = {
+  navigation: ProfileScreenNavigationProp;
+};
+
+export default function CreateProposalScreen({ navigation }: Props) {
   // const alert = useSelector(state => state.alert)
+  const dispatch = useDispatch();
+  const wallet = useSelector((state:any) => state.wallet);
+  const [amount, setAmount] = React.useState('');
+  const [id, setId] = React.useState('');
+
+  const contribute = async () => {
+    dispatch(walletActions.contribute(web3.utils.toWei(amount, 'ether').toString())); 
+  }
+
+  React.useEffect(() => {
+    if (!kit.defaultAccount) {
+      navigation.navigate("Root");
+    }
+  });
 
   return (
     <View style={styles.container}>
       <Text>
         Create A Proposal
         </Text>
-        <TouchableOpacity
-        onPress={() => alert('Hello, world!')}
-        style={{ backgroundColor: 'blue' }}>
-        <Text style={{ fontSize: 20, color: '#fff' }}>Click</Text>
-      </TouchableOpacity>
 
-      <TextInput
+      {/* <TextInput
         style={styles.input}
         // onChangeText={onChangeText}
         // value={text}
+      /> */}
+   <TextInput
+        style={styles.input}
+        // onChangeText={setAmount}
+        // value={amount}
+        placeholder="Enter the description"
+        keyboardType="default"
       />
+
       <TextInput
         style={styles.input}
-        // onChangeText={onChangeNumber}
-        // value={number}
-        placeholder="placeholder..."
+        onChangeText={setAmount}
+        value={amount}
+        placeholder="Enter the amount"
         keyboardType="numeric"
       />
-    </View>
+
+      <Button
+          title='Create'
+          onPress={contribute}
+          />
+      </View>
   );
 }
 
@@ -43,6 +80,8 @@ const styles = StyleSheet.create({
   },
   input: {
     height: 40,
+    width: '60%',
+    padding: 10,
     margin: 12,
     borderWidth: 1,
   },

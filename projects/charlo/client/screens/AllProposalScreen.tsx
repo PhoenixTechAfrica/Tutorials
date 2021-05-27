@@ -21,12 +21,12 @@ type Props = {
 export default function AllProposalScreen({ navigation }: Props) {
   const dispatch = useDispatch();
   const wallet = useSelector((state:any) => state.wallet);
-  const [amount, setAmount] = React.useState('');
+  // const [amount, setAmount] = React.useState('');
   const [id, setId] = React.useState('');
 
-  const contribute = async () => {
-    dispatch(walletActions.contribute(web3.utils.toWei(amount, 'ether').toString())); 
-  }
+  // const contribute = async () => {
+  //   dispatch(walletActions.contribute(web3.utils.toWei(amount, 'ether').toString())); 
+  // }
 
   const getAllProposal = async () => {
     dispatch(proposalActions.getAllProposals());
@@ -52,10 +52,11 @@ export default function AllProposalScreen({ navigation }: Props) {
         onPress={() => navigation.navigate('CreateProposalScreen')}
         />
 
-        <Text>{wallet.address}</Text>
-        <Text>{wallet.phone}</Text>
+        {/* <Text>{wallet.address}</Text> */}
+        <Text>Welcome {wallet.phone}</Text>
+        <Text style={styles.content}>You can use the `Create Proposal` Button to create a New Proposal</Text>
 
-        <TextInput
+        {/* <TextInput
           style={{  borderColor: 'black', borderWidth: 1, backgroundColor: 'white' }}
           placeholder="input amount to contribute"
           onChangeText={setAmount}
@@ -65,7 +66,7 @@ export default function AllProposalScreen({ navigation }: Props) {
         <Button
           title='Contribute'
           onPress={contribute}
-          />
+          /> */}
 
         <Button
           title='Get All'
@@ -99,6 +100,9 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontWeight: 'bold',
+  },
+  content: {
+    padding: 10
   },
   link: {
     marginTop: 15,
