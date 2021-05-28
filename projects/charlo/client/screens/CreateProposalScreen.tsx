@@ -63,7 +63,7 @@ export default function CreateProposalScreen({ navigation }: Props) {
       />
 
       <Button
-          title='Create'
+          title='Create Proposal'
           onPress={contribute}
           />
       </View>

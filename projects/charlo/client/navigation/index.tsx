@@ -34,10 +34,22 @@ function RootNavigator() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="Root" component={WelcomeScreen} />
-      <Stack.Screen name="AllProposalScreen" component={AllProposalScreen} />
+      <Stack.Screen name="AllProposalScreen" component={AllProposalScreen} options={{ headerShown: true,
+        title: 'Home',
+        headerStyle: {
+          backgroundColor: '#f4511e',
+        },
+        headerTintColor: '#fff',
+        headerTitleStyle: {
+          fontWeight: 'bold',
+        },
+      }} />
       <Stack.Screen name="CreateProposalScreen" component={CreateProposalScreen} options={{ headerShown: true, title: 'Back',
           headerStyle: {
             backgroundColor: '#f4511e',
+          },
+          headerBackImage:  ()=>{
+            return null 
           },
           headerTintColor: '#fff',
           headerTitleStyle: {

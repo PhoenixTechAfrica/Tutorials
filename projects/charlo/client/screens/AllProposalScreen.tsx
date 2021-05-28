@@ -21,12 +21,12 @@ type Props = {
 export default function AllProposalScreen({ navigation }: Props) {
   const dispatch = useDispatch();
   const wallet = useSelector((state:any) => state.wallet);
-  // const [amount, setAmount] = React.useState('');
+  const [amount, setAmount] = React.useState('');
   const [id, setId] = React.useState('');
 
-  // const contribute = async () => {
-  //   dispatch(walletActions.contribute(web3.utils.toWei(amount, 'ether').toString())); 
-  // }
+  const contribute = async () => {
+    dispatch(walletActions.contribute(web3.utils.toWei(amount, 'ether').toString())); 
+  }
 
   const getAllProposal = async () => {
     dispatch(proposalActions.getAllProposals());
@@ -44,9 +44,10 @@ export default function AllProposalScreen({ navigation }: Props) {
 
   return (
     <View style={styles.container}>
-      <Text>
+      {/* <Text>
         All Proposals
-        </Text>
+        <View style={StyleSheet.line}></View>
+        </Text> */}
         <Button
         title='Create a Proposal'
         onPress={() => navigation.navigate('CreateProposalScreen')}
@@ -56,7 +57,7 @@ export default function AllProposalScreen({ navigation }: Props) {
         <Text>Welcome {wallet.phone}</Text>
         <Text style={styles.content}>You can use the `Create Proposal` Button to create a New Proposal</Text>
 
-        {/* <TextInput
+        <TextInput
           style={{  borderColor: 'black', borderWidth: 1, backgroundColor: 'white' }}
           placeholder="input amount to contribute"
           onChangeText={setAmount}
@@ -66,7 +67,7 @@ export default function AllProposalScreen({ navigation }: Props) {
         <Button
           title='Contribute'
           onPress={contribute}
-          /> */}
+          />
 
         <Button
           title='Get All'
@@ -79,6 +80,10 @@ export default function AllProposalScreen({ navigation }: Props) {
           onChangeText={setId}
           value={id}
           />
+
+          <View style={styles.card}>
+
+          </View>
 
         <Button
           title='Get Proposal'
@@ -107,6 +112,16 @@ const styles = StyleSheet.create({
   link: {
     marginTop: 15,
     paddingVertical: 15,
+  },
+  line: {
+    
+  },
+  card: {
+    height: '15%',
+    width: '80%',
+    borderWidth: 1,
+    borderRadius: 5,
+    margin: 5
   },
   linkText: {
     fontSize: 14,
