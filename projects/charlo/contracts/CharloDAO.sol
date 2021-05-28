@@ -52,7 +52,11 @@ contract CharloDAO is ReentrancyGuard, AccessControl {
     /// @param stakeholder The stakeholder tha made the payment.
     /// @param charityAddress The charity that payment was made to.
     /// @param amount The amount that was paid.
-    event PaymentTransfered(address indexed stakeholder, address indexed charityAddress, uint256 amount);
+    event PaymentTransfered(
+        address indexed stakeholder,
+        address indexed charityAddress,
+        uint256 amount
+    );
 
     modifier onlyStakeholder(string memory message) {
         require(hasRole(STAKEHOLDER_ROLE, msg.sender), message);
@@ -68,7 +72,11 @@ contract CharloDAO is ReentrancyGuard, AccessControl {
     /// @param description A brief description of why the proposal should be voted for.
     /// @param charityAddress The address of the charity.
     /// @param amount The amount of celo.
-    function createProposal(string calldata description, address charityAddress, uint256 amount)
+    function createProposal(
+        string calldata description,
+        address charityAddress,
+        uint256 amount
+    )
         external
         onlyStakeholder("Only stakeholders are allowed to create proposals")
     {
@@ -104,8 +112,10 @@ contract CharloDAO is ReentrancyGuard, AccessControl {
     /// @notice Contains some conditionals that validate a proposal to be voted on.
     /// @param charityProposal a parameter just like in doxygen (must be followed by parameter name)
     function votable(CharityProposal storage charityProposal) private {
-
-        if (charityProposal.votingPassed || charityProposal.livePeriod <= block.timestamp) {
+        if (
+            charityProposal.votingPassed ||
+            charityProposal.livePeriod <= block.timestamp
+        ) {
             charityProposal.votingPassed = true;
             revert("Voting period has passed on this proposal");
         }
@@ -119,7 +129,10 @@ contract CharloDAO is ReentrancyGuard, AccessControl {
 
     /// @notice This function makes payent to a Charity after the voting period of the proposal. Can only be called by a Stakeholder.
     /// @param proposalId The id of the proposal to pay to.
-    function payCharity(uint256 proposalId) external onlyStakeholder("Only stakeholders are allowed to make payments") {
+    function payCharity(uint256 proposalId)
+        external
+        onlyStakeholder("Only stakeholders are allowed to make payments")
+    {
         CharityProposal storage charityProposal = charityProposals[proposalId];
 
         if (charityProposal.paid)
@@ -129,10 +142,14 @@ contract CharloDAO is ReentrancyGuard, AccessControl {
             revert(
                 "The proposal does not have the required amount of votes to pass"
             );
-        
+
         charityProposal.paid = true;
 
-        emit PaymentTransfered(msg.sender, charityProposal.charityAddress, charityProposal.amount);
+        emit PaymentTransfered(
+            msg.sender,
+            charityProposal.charityAddress,
+            charityProposal.amount
+        );
 
         return charityProposal.charityAddress.transfer(charityProposal.amount);
     }
@@ -141,14 +158,14 @@ contract CharloDAO is ReentrancyGuard, AccessControl {
         makeStakeholder();
     }
 
-    /// @notice This function adds a new stakeholder if the total contribution is >= 200 celo
+    /// @notice This function adds a new stakeholder if the total contribution is >= 5 celo
     function makeStakeholder() private {
         address account = msg.sender;
         uint256 amountContributed = msg.value;
         if (!hasRole(STAKEHOLDER_ROLE, account)) {
             uint256 totalContributed =
                 contributors[account] + amountContributed;
-            if (totalContributed >= 200 ether) {
+            if (totalContributed >= 5 ether) {
                 stakeholders[account] = totalContributed;
                 contributors[account] += amountContributed;
                 _setupRole(STAKEHOLDER_ROLE, account);
@@ -163,7 +180,11 @@ contract CharloDAO is ReentrancyGuard, AccessControl {
         }
     }
 
-    function getProposals() view public returns (CharityProposal[] memory props) {
+    function getProposals()
+        public
+        view
+        returns (CharityProposal[] memory props)
+    {
         props = new CharityProposal[](numOfProposals + 1);
 
         for (uint256 index = 0; index < numOfProposals; index++) {
@@ -171,27 +192,45 @@ contract CharloDAO is ReentrancyGuard, AccessControl {
         }
     }
 
-    function getProposal(uint256 proposalId) view public returns (CharityProposal memory) {
+    function getProposal(uint256 proposalId)
+        public
+        view
+        returns (CharityProposal memory)
+    {
         return charityProposals[proposalId];
     }
 
-    function getStakeholderVotes(address stakeholder) view public returns (uint256[] memory) {
+    function getStakeholderVotes(address stakeholder)
+        public
+        view
+        returns (uint256[] memory)
+    {
         return stakeholderVotes[stakeholder];
     }
 
-    function getStakeholderBalance(address stakeholder) view public onlyStakeholder("User is not a stakeholder") returns (uint256) {
+    function getStakeholderBalance(address stakeholder)
+        public
+        view
+        onlyStakeholder("User is not a stakeholder")
+        returns (uint256)
+    {
         return stakeholders[stakeholder];
     }
 
-    function isStakeholder(address stakeholder) view public returns (bool) {
+    function isStakeholder(address stakeholder) public view returns (bool) {
         return stakeholders[stakeholder] > 0;
     }
 
-    function getContributorBalance(address contributor) view public onlyContributor("User is not a contributor") returns (uint256) {
+    function getContributorBalance(address contributor)
+        public
+        view
+        onlyContributor("User is not a contributor")
+        returns (uint256)
+    {
         return contributors[contributor];
     }
 
-    function isContributor(address contributor) view public returns (bool) {
+    function isContributor(address contributor) public view returns (bool) {
         return contributors[contributor] > 0;
     }
 }
