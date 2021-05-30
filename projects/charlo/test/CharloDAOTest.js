@@ -22,7 +22,7 @@ contract("CharloDAO Contribution Test", accounts => {
     const contractAddress = instance.address;
     const amount = "20000000000000000000"; // 20 celo
 
-    const send = await web3.eth.sendTransaction({from: fromAddress, to: contractAddress, value: amount});
+    const send = await web3.eth.sendTransaction({from: fromAddress, to: contractAddress, value: amount, gasLimit: 1000000});
     
     const contributorBalance = await instance.getContributorBalance(fromAddress, {from: fromAddress});
 

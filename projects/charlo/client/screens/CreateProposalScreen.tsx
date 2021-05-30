@@ -1,7 +1,7 @@
 import { StackScreenProps } from '@react-navigation/stack';
 import * as React from 'react';
 import { StyleSheet, TouchableOpacity, View, Text, TextInput, Button } from 'react-native';
-import { RootStackParamList } from '../types';
+import { Proposal, RootStackParamList } from '../types';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { useDispatch, useSelector } from 'react-redux';
 import { kit, web3 } from '../root';
@@ -23,10 +23,17 @@ export default function CreateProposalScreen({ navigation }: Props) {
   const dispatch = useDispatch();
   const wallet = useSelector((state:any) => state.wallet);
   const [amount, setAmount] = React.useState('');
+  const [desc, setDesc] = React.useState('');
+  const [chaAdd, setChaAdd] = React.useState('');
   const [id, setId] = React.useState('');
 
-  const contribute = async () => {
-    dispatch(walletActions.contribute(web3.utils.toWei(amount, 'ether').toString())); 
+  const createProposal = async () => {
+    const proposal: Proposal = {
+      amount: amount,
+      charityAddress: chaAdd,
+      description: desc
+    };
+    dispatch(proposalActions.createProposal(proposal)); 
   }
 
   React.useEffect(() => {
@@ -48,9 +55,16 @@ export default function CreateProposalScreen({ navigation }: Props) {
       /> */}
    <TextInput
         style={styles.input}
-        // onChangeText={setAmount}
-        // value={amount}
+        onChangeText={setDesc}
+        value={desc}
         placeholder="Enter the description"
+        keyboardType="default"
+      />
+       <TextInput
+        style={styles.input}
+        onChangeText={setChaAdd}
+        value={chaAdd}
+        placeholder="Enter Charity Address"
         keyboardType="default"
       />
 
@@ -64,7 +78,7 @@ export default function CreateProposalScreen({ navigation }: Props) {
 
       <Button
           title='Create Proposal'
-          onPress={contribute}
+          onPress={createProposal}
           />
       </View>
   );

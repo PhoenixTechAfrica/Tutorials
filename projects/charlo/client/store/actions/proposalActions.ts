@@ -15,7 +15,7 @@ export const proposalActions = {
 
 function createProposal(proposal: Proposal) {
     return async (dispatch: any) => {
-        dispatch(request("Createing proposal..."))
+        dispatch(request("Creating proposal..."))
 
         try {
             const requestId = "create_proposal";
@@ -23,6 +23,13 @@ function createProposal(proposal: Proposal) {
             const callback = Linking.makeUrl("two") // Fix: should navigate to viewproposal screen
 
             const txObject = (await contractInstance).methods.createProposal(proposal.description, proposal.charityAddress, proposal.amount);
+            console.log(kit.defaultAccount);
+            
+            const txa = (await contractInstance).methods.isStakeholder(kit.defaultAccount).call();
+            const txb = (await contractInstance).methods.isContributor(kit.defaultAccount).call();
+            console.log("Segun: ", await txa);
+            console.log("Emma: ", await txb);
+            
 
             requestTxSig(
                 kit,

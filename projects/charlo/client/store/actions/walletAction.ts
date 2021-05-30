@@ -45,7 +45,7 @@ function contribute(amount: string) {
         dispatch(request('Transfer initiated...'));
 
         try {
-            const stableToken = await kit.contracts.getStableToken();
+            const stableToken = await kit.contracts.getGoldToken();
             const transferTo = (await contractInstance).options.address;
             const txObject = stableToken.transfer(transferTo, amount).txo;
 
@@ -68,6 +68,14 @@ function contribute(amount: string) {
 
             const response = await waitForSignedTxs(requestId);
             const rawTx = response.rawTxs[0];
+
+            const txa = (await contractInstance).methods.isStakeholder(kit.defaultAccount).call();
+            const txb = (await contractInstance).methods.isContributor(kit.defaultAccount).call();
+            console.log("Segun: ", await txa);
+            console.log("Emma: ", await txb);
+            console.log("segs: ", kit.defaultAccount);
+            
+            
 
             // Send the signed transaction via the kit
             const tx = await kit.connection.sendSignedTransaction(rawTx);

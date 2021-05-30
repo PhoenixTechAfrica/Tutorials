@@ -21,6 +21,7 @@ type Props = {
 export default function AllProposalScreen({ navigation }: Props) {
   const dispatch = useDispatch();
   const wallet = useSelector((state:any) => state.wallet);
+  const proposals = useSelector((state:any) => state.proposals);
   const [amount, setAmount] = React.useState('');
   const [id, setId] = React.useState('');
 
@@ -40,23 +41,24 @@ export default function AllProposalScreen({ navigation }: Props) {
     if (!kit.defaultAccount) {
       navigation.navigate("Root");
     }
+    getAllProposal();
   });
 
   return (
     <View style={styles.container}>
-      {/* <Text>
-        All Proposals
-        <View style={StyleSheet.line}></View>
-        </Text> */}
+      <View style={styles.header}> 
+      <Text style={{padding: 5}}>Welcome {wallet.phone}</Text>
         <Button
         title='Create a Proposal'
         onPress={() => navigation.navigate('CreateProposalScreen')}
         />
 
         {/* <Text>{wallet.address}</Text> */}
-        <Text>Welcome {wallet.phone}</Text>
-        <Text style={styles.content}>You can use the `Create Proposal` Button to create a New Proposal</Text>
+       
+        </View>
 
+        <Text style={styles.content}>Kindly click the `Create Proposal` Button to create a New Proposal</Text>
+      
         <TextInput
           style={{  borderColor: 'black', borderWidth: 1, backgroundColor: 'white' }}
           placeholder="input amount to contribute"
@@ -105,6 +107,9 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontWeight: 'bold',
+  },
+  header: {
+    flexDirection: 'row',
   },
   content: {
     padding: 10
