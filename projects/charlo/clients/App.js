@@ -1,6 +1,7 @@
 import './global';
 import * as eva from '@eva-design/eva';
-import { ApplicationProvider } from '@ui-kitten/components';
+import { ApplicationProvider, IconRegistry } from '@ui-kitten/components';
+import { EvaIconsPack } from '@ui-kitten/eva-icons';
 
 import { StatusBar } from 'expo-status-bar';
 import React from 'react';
@@ -29,8 +30,11 @@ export default function App() {
           {...eva}
           theme={{...eva.dark, ...theme}}
           customMapping={mapping}>
+
+          <IconRegistry icons={EvaIconsPack} />
           <Navigation coloScheme={colorScheme} />
           <StatusBar />
+          
         </ApplicationProvider>
       </Provider>
     );
