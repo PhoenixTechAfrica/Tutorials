@@ -1,7 +1,8 @@
 import * as React from 'react';
 import { Alert } from 'react-native';
-import { Button, Text, View, SafeAreaView, StyleSheet } from 'react-native';
+import { SafeAreaView, StyleSheet } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
+import { Layout, Button, Text } from '@ui-kitten/components';
 
 import { kit } from '../root';
 import { walletActions } from '../store/actions/walletActions';
@@ -23,24 +24,22 @@ export const WelcomePage = ({navigation}) => {
   });
 
   return (
-    <View style={styles.container}>
+    <Layout style={styles.container}>
       <Button
-        title='Connect Wallet'
         raised='true'
         onPress={login}
-      />
+      >Connect To Wallet</Button>
 
       <Text style={styles.text}>
         Welcome to the Charity example DAO
       </Text>
-    </View>
+    </Layout>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
     alignItems: 'center',
     justifyContent: 'center',
     padding: 20,
