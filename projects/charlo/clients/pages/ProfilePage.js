@@ -1,7 +1,8 @@
 import * as React from 'react';
 import { View, SafeAreaView } from 'react-native';
 import { Button, Card, Input, Layout, List, useTheme, Text } from '@ui-kitten/components';
-import { ViewProposalModal } from '../components/ViewProposalModal';
+
+import { ViewProposalModal } from '../components'
 
 export const ProfilePage = ({ navigation }) => {
   const [visible, setVisible] = React.useState(false);

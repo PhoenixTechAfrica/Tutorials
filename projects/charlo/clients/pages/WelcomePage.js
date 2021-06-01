@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { Layout, Button, Text } from '@ui-kitten/components';
 
 import { kit } from '../root';
-import { walletActions } from '../store/actions/walletActions';
+import { walletActions } from '../store/actions';
 
 export const WelcomePage = ({navigation}) => {
   const dispatch = useDispatch();

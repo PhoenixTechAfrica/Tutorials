@@ -6,9 +6,7 @@ import { DarkTheme, DefaultTheme } from '@react-navigation/native';
 import { Image, Button, TouchableOpacity, View } from "react-native";
 import { Layout, useTheme } from '@ui-kitten/components';
 
-import { WelcomePage } from '../pages/WelcomePage';
-import { ProposalsPage } from '../pages/ProposalsPage';
-import { ProfilePage } from '../pages/ProfilePage';
+import { ProfilePage, ProposalsPage, WelcomePage } from '../pages';
 import { CustomSidebarMenu } from  './CustomSidebarMenu';
 
 export function Navigation({coloScheme}) {

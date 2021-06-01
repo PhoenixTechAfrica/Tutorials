@@ -33,7 +33,7 @@ function createProposal(proposal) {
         kit.
         [
           {
-            from: kit && kit.defaultAccount
+            from: kit && kit.defaultAccount,
             to: contractAddress,
             tx: txObject,
             feeCurrency: FeeCurrency.cGLD

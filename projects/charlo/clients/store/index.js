@@ -4,9 +4,10 @@ import thunkMiddleware from "redux-thunk";
 
 import { alert } from './reducers/alertReducer';
 import { wallet } from "./reducers/walletReducer";
+import { proposal } from './reducers/proposalReducer';
 
 
-const rootReducer = combineReducers({alert, wallet});
+const rootReducer = combineReducers({alert, proposal, wallet});
 const loggerMiddleware = createLogger();
 
 export const store = createStore(

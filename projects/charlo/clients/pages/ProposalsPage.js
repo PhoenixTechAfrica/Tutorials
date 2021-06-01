@@ -1,8 +1,8 @@
 import * as React from 'react';
 import { View, SafeAreaView, ScrollView, StyleSheet } from 'react-native';
 import { Layout, Button, Text, TopNavigation, Divider, Icon, Card, useTheme, Modal, Input, List } from '@ui-kitten/components';
-import { CreateProposalModal } from '../components/CreateProposalModal';
-import { ViewProposalModal } from '../components/ViewProposalModal';
+
+import { CreateProposalModal, ViewProposalModal } from '../components';
 
 export const ProposalsPage = ({ navigation }) => {
   const [createVisible, setCreateVisible] = React.useState(false);
