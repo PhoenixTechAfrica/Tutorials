@@ -1,57 +1,35 @@
 import * as React from 'react';
-import { View, SafeAreaView } from 'react-native';
-import { Layout, Button, Text, TopNavigation, Divider, Icon, Card, useTheme, Modal, Input } from '@ui-kitten/components';
-
-const useInputState = (initialValue = '') => {
-  const [value, setValue] = React.useState(initialValue);
-  return {value, onChangeText: setValue};
-};
+import { View, SafeAreaView, ScrollView, StyleSheet } from 'react-native';
+import { Layout, Button, Text, TopNavigation, Divider, Icon, Card, useTheme, Modal, Input, List } from '@ui-kitten/components';
+import { CreateProposalModal } from '../components/CreateProposalModal';
+import { ViewProposalModal } from '../components/ViewProposalModal';
 
 export const ProposalsPage = ({ navigation }) => {
-  const [visible, setVisible] = React.useState(false);
+  const [createVisible, setCreateVisible] = React.useState(false);
+  const [viewVisible, setViewVisible] = React.useState(false);
+  const [data, setData] = React.useState([]);
   const theme = useTheme();
-  const descriptionInput = useInputState();
-  const charityAddressInput = useInputState();
-  const amountInput = useInputState();
 
-  const cardHeader = (props) => {
+  const chaFooter = (props, info) => {
     return(
-      <View {...props} style={{...props.style, flex: 1, flexDirection: 'row', justifyContent: 'space-between'}}>
-        <Text style={{margin: 16}} category='h6'>Create Proposal</Text>
-        <Button
-          size='large'
-          onPress={() => setVisible(false)}
-          appearance='ghost'
-          accessoryLeft={starIcon}/>
-          
+      <View {...props} style={{...props.style, flexDirection: 'row', justifyContent: 'space-evenly', padding: 8}}>
+        <Text style={{color: theme['color-info-default']}}>For: {info.for}</Text>
+        <Text style={{color: theme['color-danger-default']}}>Against: {info.against}</Text>
       </View>
     );
   };
 
-  const cardFooter = (props) => {
+  const cardItem = (info) => {
     return(
-      <View {...props} style={{...props.style, flexDirection: 'row', justifyContent: 'flex-end'}}>
-        <Button
-          style={{marginHorizontal: 2}}
-          size='small'
-          status='basic'
-          onPress={() => setVisible(false)}>
-          CANCEL
-        </Button>
-        <Button
-          style={{marginHorizontal: 2}}
-          size='small'>
-          CREATE
-        </Button>
-      </View>
+      <Card
+        style={{borderColor: theme['color-primary-default'], marginVertical: 4}}
+        footer={props => chaFooter(props, {for: 10, against: 3})}
+        onPress={() => setViewVisible(true)}>
+        
+        <Text category='s2' numberOfLines={5} ellipsizeMode='tail'>{info.item.desc}</Text>
+      </Card>
     );
   };
-
-  const starIcon = (props) => {
-    return(
-      <Icon {...props} name='close-circle-outline'/>
-    );
-  }
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
@@ -60,48 +38,24 @@ export const ProposalsPage = ({ navigation }) => {
           disabled='true'
           style={{borderColor: theme['color-primary-default'], margin: 8, padding: 8}}>
 
-          <Button size='medium' onPress={() => setVisible(true)}>Create Proposal</Button>
-          
+          <Button size='medium' onPress={() => setCreateVisible(true)}>Create Proposal</Button>
         </Card>
 
-        <Modal
-          visible={visible}
-          backdropStyle={{backgroundColor: theme['color-primary-transparent-300']}}
-          onBackdropPress={() => setVisible(false)}
-          >
-            <Card
-              disabled='true'
-              style={{flex: 1, borderColor: theme['color-primary-default'], margin: 2}}
-              header={cardHeader}
-              footer={cardFooter}>
-              
-              <Layout style={{flex: 1, padding: 8}}>
-              <Input
-                  size='medium'
-                  style={{margin: 2}}
-                  status='primary'
-                  keyboardType='numeric'
-                  placeholder='Enter amount'
-                  {...amountInput}/>
+        <List
+          contentContainerStyle={{paddingHorizontal: 8, paddingVertical: 4}}
+          data={data}
+          renderItem={cardItem}/>
 
-                <Input
-                  size='medium'
-                  style={{margin: 2}}
-                  status='primary'
-                  placeholder='Enter Charity address'
-                  {...charityAddressInput}/>
+        <CreateProposalModal
+          setVisible={setCreateVisible}
+          visible={createVisible}
+          setData={setData}
+          data={data}/>
 
-                <Input
-                  multiline={true}
-                  textStyle={{minHeight: 64}}
-                  style={{margin: 2}}
-                  status='primary'
-                  placeholder='Enter the description'
-                  {...descriptionInput}/>
-              </Layout>
-              
-            </Card>
-        </Modal>
+        <ViewProposalModal
+          setVisible={setViewVisible}
+          visible={viewVisible}/>
+
       </Layout>
     </SafeAreaView>
   );
