@@ -6,7 +6,7 @@ import { alertActions } from './alertActions';
 import { walletConstants } from '../../constants/walletConstants';
 
 export const walletActions = {
-  connect
+  connect, contribute
 }
 
 function connect(params) {
