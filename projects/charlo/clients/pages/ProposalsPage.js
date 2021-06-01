@@ -26,7 +26,7 @@ export const ProposalsPage = ({ navigation }) => {
         footer={props => chaFooter(props, {for: 10, against: 3})}
         onPress={() => setViewVisible(true)}>
         
-        <Text category='s2' numberOfLines={5} ellipsizeMode='tail'>{info.item.desc}</Text>
+        <Text category='s2' numberOfLines={4} ellipsizeMode='tail'>{info.item.desc}</Text>
       </Card>
     );
   };

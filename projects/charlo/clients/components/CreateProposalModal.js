@@ -3,7 +3,6 @@ import { Alert, View } from 'react-native';
 import { Button, Modal, Card, Layout, Input, Icon, useTheme, Text } from '@ui-kitten/components';
 
 export const CreateProposalModal = ({setVisible, visible, data, setData}) => {
-  const [valid, setValid] = React.useState(false);
   const theme = useTheme();
 
   const descriptionInput = useInputState('Description');
@@ -111,9 +110,9 @@ export const CreateProposalModal = ({setVisible, visible, data, setData}) => {
 
 const useInputState = (name, initialValue = '') => {
   const [value, setValue] = React.useState(initialValue);
-  const [valid, setValid] = React.useState(false);
+
   let caption;
-  if (value == '') {
+  if (value === '') {
     caption = `${name} cannot be empty`;
   }
 
