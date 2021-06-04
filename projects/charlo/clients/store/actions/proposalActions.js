@@ -2,19 +2,21 @@ import { FeeCurrency, requestTxSig, waitForSignedTxs } from '@celo/dappkit';
 import { toTxResult } from '@celo/connect';
 import * as Linking from 'expo-linking';
 
-import { contractInstance, kit } from '../../root';
+import { contractInstance, kit, web3 } from '../../root';
 import { alertActions } from './alertActions';
+import { proposalConstants } from '../../constants'
 
 
 export const proposalActions = {
-  createProposal,
+  create,
   getAllProposals,
   getProposal
 }
 
-function createProposal(proposal) {
-  return async dispatch => {
-    dispatch(request('Sending transaction...'));
+function create(proposal) {
+  return async (dispatch) => {
+    dispatch(alertActions.clear());
+    dispatch(alertActions.request("Create proposal initiated..."));
 
     try {
       const contractAddress = await (await contractInstance).options.address;
@@ -23,74 +25,71 @@ function createProposal(proposal) {
       const dappName = 'Charlo';
       const callback = Linking.makeUrl('ProposalsPage');
 
-      const txObject = await (await contractInstance).methods.createProposal(
-        proposal.description,
-        proposal.charityAddress,
-        proposal.amount
-      );
+      const description = proposal.description;
+      const charityAddress = proposal.charityAddress;
+      const requestedAmount = web3.utils.toWei(proposal.amount, 'ether');
+
+      const txObject = await (await contractInstance).methods.createProposal(description, charityAddress, requestedAmount);
 
       requestTxSig(
-        kit.
+        kit,
         [
           {
-            from: kit && kit.defaultAccount,
+            from: kit.defaultAccount,
             to: contractAddress,
             tx: txObject,
-            feeCurrency: FeeCurrency.cGLD
+            feeCurrency: FeeCurrency.cUSD
           }
         ],
         { requestId, dappName, callback }
       );
 
       const response = await waitForSignedTxs(requestId);
-      const tx = response.rawTxs[0];
-      const result = await toTxResult(kit.web3.eth.sendSignedTransaction(tx)).waitReceipt();
-
+      const rawTx = response.rawTxs[0];
+      const result = await toTxResult(kit.web3.eth.sendSignedTransaction(rawTx)).waitReceipt();
+      
       dispatch(success(result));
+      dispatch(alertActions.success("Proposal successful"));
     } catch (err) {
-      dispatch(failure(err.toString()));
-      dispatch(alertActions.error(error.toString()));
+      dispatch(alertActions.error(err.toString()));
     }
   };
 
-  function request(message: string) { return { type: proposalConstants.CREATE_PROPOSAL_REQUEST, message } };
-  function success(res: object) { return { type: proposalConstants.CREATE_PROPOSAL_SUCCESS, res } };
-  function failure(error: any) { return { type: proposalConstants.CREATE_PROPOSAL_FAILURE, error } };
+  function success(res) { return { type: proposalConstants.CREATE_PROPOSAL_SUCCESS, res } };
 }
 
 function getAllProposals() {
   return async dispatch => {
-    dispatch(request('Fetching all proposals...'));
+    dispatch(alertActions.clear());
+    dispatch(alertActions.request('Fetching all proposals...'));
 
     try {
       const allProposals = await (await contractInstance).methods.getProposals().call();
 
       dispatch(success(allProposals));
+      dispatch(alertActions.success("Fetch successful"));
     } catch (err) {
-      dispatch(failure(err));
       dispatch(alertActions.error(err.toString()));
     }
   };
 
-  function request(message: string) { return { type: proposalConstants.GET_ALL_PROPOSAL_REQUEST, message } };
-  function success(res: Proposal[]) { return { type: proposalConstants.GET_ALL_PROPOSAL_SUCCESS, res } };
-  function failure(error: any) { return { type: proposalConstants.GET_ALL_PROPOSAL_FAILURE, error } };
+  function success(proposals) { return { type: proposalConstants.GET_ALL_PROPOSAL_SUCCESS, proposals } };
 }
 
 function getProposal(id) {
   return async dispatch => {
-    dispatch(request(`Fetching proposal with id ${id}`));
+    dispatch(alertActions.clear());
+    dispatch(alertActions.request(`Fetching proposal with id ${id}`));
 
     try {
       const proposal = await (await contractInstance).methods.getProposal(id).call();
+
       dispatch(success(proposal));
+      dispatch(alertActions.success("Fetch successful"));
     } catch (err) {
-      dispatch(failure(err));
       dispatch(alertActions.error(err.toString()));
     }
   };
 
-  function request(message: string) { return { type: proposalConstants.GET_PROPOSAL_REQUEST, message } };
-  function success(proposal: Proposal) { return { type: proposalConstants.GET_PROPOSAL_SUCCESS, proposal } };
-  function failure(error: any) { return { type: proposalConstants.GET_PROPOSAL_FAILURE, error } };
+  function success(proposal) { return { type: proposalConstants.GET_PROPOSAL_SUCCESS, proposal } };
 }

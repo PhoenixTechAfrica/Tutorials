@@ -1,15 +1,22 @@
-import { alertConstant } from '../../constants/alertConstants';
+import { alertConstants, walletConstants } from '../../constants';
 
 export const alertActions = {
-  success, error, clear
+  request,
+  success,
+  error,
+  clear
 }
 
-function success(message: string) {
+function request(message) {
+  return {type: alertConstants.REQUEST, message};
+}
+
+function success(message) {
   return {type: alertConstants.SUCCESS, message};
 }
 
-function error(message: string) {
-  return {type: alertConstants.SUCCESS, message};
+function error(message) {
+  return {type: alertConstants.ERROR, message};
 }
 
 function clear() {

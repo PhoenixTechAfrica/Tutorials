@@ -1,3 +1,4 @@
 data-dir
 .secret
 build
+yarn.lock

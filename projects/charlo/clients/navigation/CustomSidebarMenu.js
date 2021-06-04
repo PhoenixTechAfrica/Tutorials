@@ -8,14 +8,14 @@ import { Layout, useTheme } from '@ui-kitten/components';
 export const CustomSidebarMenu = (props) => {
   const theme = useTheme();
   const BASE_PATH =
-    '../assets/';
-  const proileImage = 'adaptive-icon.png';
+    '../assets/images';
+  const profileImage = '/icon.png';
 
   return(
     <SafeAreaView style={{flex: 1}}>
-      <Layout style={{flex: 1}}>
+      <Layout style={{flex: 1, paddingTop: 50}}>
         <Image
-          source={{ uri: BASE_PATH + proileImage }}
+          source={require(BASE_PATH + profileImage)}
           style={styles.sideMenuProfileIcon}/>
 
         <DrawerContentScrollView {...props}>

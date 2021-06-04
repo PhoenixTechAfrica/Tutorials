@@ -7,7 +7,7 @@ import { wallet } from "./reducers/walletReducer";
 import { proposal } from './reducers/proposalReducer';
 
 
-const rootReducer = combineReducers({alert, proposal, wallet});
+const rootReducer = combineReducers({wallet, proposal, alert});
 const loggerMiddleware = createLogger();
 
 export const store = createStore(

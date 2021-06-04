@@ -32,7 +32,7 @@ export default function App() {
           customMapping={mapping}>
 
           <IconRegistry icons={EvaIconsPack} />
-          <Navigation coloScheme={colorScheme} />
+          <Navigation colorScheme={colorScheme} />
           <StatusBar />
           
         </ApplicationProvider>

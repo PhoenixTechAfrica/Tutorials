@@ -1,14 +1,31 @@
 import * as React from 'react';
 import { View, SafeAreaView, ScrollView, StyleSheet } from 'react-native';
-import { Layout, Button, Text, TopNavigation, Divider, Icon, Card, useTheme, Modal, Input, List } from '@ui-kitten/components';
+import { Layout, Button, Text, TopNavigation, Divider, Icon, Card, useTheme, Modal, Input, List, Spinner } from '@ui-kitten/components';
+import { useDispatch, useSelector } from 'react-redux';
 
 import { CreateProposalModal, ViewProposalModal } from '../components';
+import { proposalActions } from '../store/actions';
+import { kit } from '../root';
 
 export const ProposalsPage = ({ navigation }) => {
   const [createVisible, setCreateVisible] = React.useState(false);
   const [viewVisible, setViewVisible] = React.useState(false);
-  const [data, setData] = React.useState([]);
+
+  const dispatch = useDispatch();
+  const store = useSelector(state => state.proposal);
+  const alert = useSelector(state => state.alert);
+
   const theme = useTheme();
+
+  React.useEffect(() => {
+    if (!kit.defaultAccount) {
+      navigation.navigate("WelcomePage");
+    }
+  });
+
+  React.useEffect(() => {
+    dispatch(proposalActions.getAllProposals());
+  }, []);
 
   const chaFooter = (props, info) => {
     return(
@@ -23,34 +40,43 @@ export const ProposalsPage = ({ navigation }) => {
     return(
       <Card
         style={{borderColor: theme['color-primary-default'], marginVertical: 4}}
-        footer={props => chaFooter(props, {for: 10, against: 3})}
-        onPress={() => setViewVisible(true)}>
+        footer={props => chaFooter(props, {for: info.item[3], against: info.item[4]})}
+        onPress={() => getProposal(info.item[0])}>
         
-        <Text category='s2' numberOfLines={4} ellipsizeMode='tail'>{info.item.desc}</Text>
+        <Text category='s2' numberOfLines={4} ellipsizeMode='tail'>{info.item[5]}</Text>
       </Card>
     );
   };
 
+  const getProposal = (id) => {
+    dispatch(proposalActions.getProposal(id));
+
+    setViewVisible(true);
+  };
+
   return (
     <SafeAreaView style={{ flex: 1 }}>
-      <Layout style={{ flex: 1, padding: 16 }}>
-        <Card
-          disabled='true'
-          style={{borderColor: theme['color-primary-default'], margin: 8, padding: 8}}>
+      <Layout style={{ flex: 1, alignItems: 'center', padding: 16 }}>
 
-          <Button size='medium' onPress={() => setCreateVisible(true)}>Create Proposal</Button>
-        </Card>
+          <Button
+            size='medium'
+            onPress={() => setCreateVisible(true)}
+            accessoryLeft={alert.loading ? loadingIndicator : ''}
+          >Create Proposal</Button>
 
-        <List
+        {
+          alert.loading ? <Spinner status='primary' size='giant' /> : 
+          <List
           contentContainerStyle={{paddingHorizontal: 8, paddingVertical: 4}}
-          data={data}
+          data={store.proposals}
           renderItem={cardItem}/>
+        }
+
+        
 
         <CreateProposalModal
           setVisible={setCreateVisible}
-          visible={createVisible}
-          setData={setData}
-          data={data}/>
+          visible={createVisible}/>
 
         <ViewProposalModal
           setVisible={setViewVisible}
@@ -60,3 +86,11 @@ export const ProposalsPage = ({ navigation }) => {
     </SafeAreaView>
   );
 };
+
+const loadingIndicator = (props) => {
+  return(
+    <View style={{...props.style, justifyContent: 'center', alignItems: 'center'}}>
+      <Spinner size='small' status='basic' />
+    </View>
+  );
+}

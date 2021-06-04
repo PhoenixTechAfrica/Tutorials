@@ -1,15 +1,16 @@
 import * as React from 'react';
 import { Alert } from 'react-native';
-import { SafeAreaView, StyleSheet } from 'react-native';
+import { SafeAreaView, StyleSheet, View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
-import { Layout, Button, Text } from '@ui-kitten/components';
+import { Layout, Button, Text, Spinner } from '@ui-kitten/components';
 
 import { kit } from '../root';
 import { walletActions } from '../store/actions';
 
+
 export const WelcomePage = ({navigation}) => {
   const dispatch = useDispatch();
-  const wallet = useSelector((state) => state.wallet);
+  const alert = useSelector(state => state.alert);
 
   const login = async () => {
     if (!kit.defaultAccount) {
@@ -28,6 +29,7 @@ export const WelcomePage = ({navigation}) => {
       <Button
         raised='true'
         onPress={login}
+        accessoryLeft={alert.loading ? loadingIndicator : ""}
       >Connect To Wallet</Button>
 
       <Text style={styles.text}>
@@ -36,6 +38,14 @@ export const WelcomePage = ({navigation}) => {
     </Layout>
   );
 };
+
+const loadingIndicator = (props) => {
+  return(
+    <View style={[props.style, styles.indicator]}>
+      <Spinner size='small' status='basic' />
+    </View>
+  );
+}
 
 const styles = StyleSheet.create({
   container: {
@@ -46,5 +56,9 @@ const styles = StyleSheet.create({
   },
   text: {
     paddingTop: 10,
-  }
+  },
+  indicator: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
 });

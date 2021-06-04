@@ -3,16 +3,20 @@ import { createDrawerNavigator } from "@react-navigation/drawer";
 import { createStackNavigator } from "@react-navigation/stack";
 import { NavigationContainer } from '@react-navigation/native';
 import { DarkTheme, DefaultTheme } from '@react-navigation/native';
-import { Image, Button, TouchableOpacity, View } from "react-native";
+import { Image, TouchableOpacity, View } from "react-native";
 import { Layout, useTheme } from '@ui-kitten/components';
+import { useSelector } from 'react-redux';
 
 import { ProfilePage, ProposalsPage, WelcomePage } from '../pages';
 import { CustomSidebarMenu } from  './CustomSidebarMenu';
 
-export function Navigation({coloScheme}) {
+
+export function Navigation({colorScheme}) {
+  const alert = useSelector(state => state.alert);
+  const theme = useTheme();
+
   return(
-    <NavigationContainer
-      theme={coloScheme === 'dark' ? DarkTheme : DefaultTheme}>
+    <NavigationContainer>
       <RootNavigator />
     </NavigationContainer>
   );
@@ -57,9 +61,7 @@ const NavigationDrawerStructure = (props) => {
       <TouchableOpacity onPress={toggleDrawer}>
         <Image
           
-          source={{
-            uri: 'https://raw.githubusercontent.com/AboutReact/sampleresource/master/drawerWhite.png'
-          }}
+          source={require('../assets/images/drawerWhite.png')}
           style={{width: 25, height: 25, marginLeft: 5}}
         />
       </TouchableOpacity>

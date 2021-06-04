@@ -1,11 +1,17 @@
 import * as React from 'react';
 import { View, SafeAreaView } from 'react-native';
-import { Button, Card, Input, Layout, List, useTheme, Text } from '@ui-kitten/components';
+import { Button, Card, Input, Layout, List, useTheme, Text, Spinner } from '@ui-kitten/components';
+import { useDispatch, useSelector } from 'react-redux';
 
-import { ViewProposalModal } from '../components'
+import { ViewProposalModal } from '../components';
+import { walletActions } from '../store/actions';
 
 export const ProfilePage = ({ navigation }) => {
   const [visible, setVisible] = React.useState(false);
+
+  const dispatch = useDispatch();
+  const alert = useSelector(state => state.alert);
+
   const amountInput = useInputState('Amount');
 
   const theme = useTheme();
@@ -14,6 +20,8 @@ export const ProfilePage = ({ navigation }) => {
     if (amountInput.value === '') {
       return;
     }
+
+    dispatch(walletActions.contribute(amountInput.value));
 
     amountInput.setValue('');
   };
@@ -58,10 +66,15 @@ export const ProfilePage = ({ navigation }) => {
           <Button
             size='small'
             onPress={contribute}
+            accessoryLeft={alert.loading ? loadingIndicator : ''}
             >
             CONTRIBUTE
           </Button>
         </Card>
+
+        {
+          alert.loading ? <Spinner status='primary' size='giant' /> : null
+        }
 
         <Layout style={{flex: 5}}>
           <List pagingEnabled='true'
@@ -88,3 +101,11 @@ const useInputState = (name, initialValue = '') => {
 
   return {value, onChangeText: setValue, setValue, caption};
 };
+
+const loadingIndicator = (props) => {
+  return(
+    <View style={{...props.style, justifyContent: 'center', alignItems: 'center'}}>
+      <Spinner size='small' status='basic' />
+    </View>
+  );
+}

@@ -1,34 +1,41 @@
 import * as React from 'react';
-import { Alert, View } from 'react-native';
-import { Button, Modal, Card, Layout, Input, Icon, useTheme, Text } from '@ui-kitten/components';
+import { View } from 'react-native';
+import { Button, Modal, Card, Layout, Input, Icon, useTheme, Text, Spinner } from '@ui-kitten/components';
+import { useDispatch, useSelector } from 'react-redux';
+import { proposalActions } from '../store/actions';
 
-export const CreateProposalModal = ({setVisible, visible, data, setData}) => {
+export const CreateProposalModal = ({setVisible, visible}) => {
+  const dispatch = useDispatch();
+  const alert = useSelector(state => state.alert);
+
   const theme = useTheme();
 
   const descriptionInput = useInputState('Description');
   const charityAddressInput = useInputState('Address');
   const amountInput = useInputState('Amount');
 
-  const addItem = () => {
+  const handleCreate = async () => {
     if (amountInput.value == ''
       || descriptionInput.value.length < 20
       || charityAddressInput.value == '') {
-      
 
       return;
     }
-    let newData = [...data];
-    newData.push({
-      amount: amountInput.value,
-      desc: descriptionInput.value,
-      chaAdd: charityAddressInput.value
-    });
+
+    await dispatch(proposalActions.create({
+      description: descriptionInput.value,
+      charityAddress: charityAddressInput.value,
+      amount: amountInput.value
+    }));
+
+    await dispatch(proposalActions.getAllProposals());
+
+    console.log("Seguns: ", descriptionInput.value);
 
     amountInput.setValue('');
     descriptionInput.setValue('');
     charityAddressInput.setValue('');
 
-    setData(newData);
     setVisible(false);
   };
 
@@ -59,7 +66,8 @@ export const CreateProposalModal = ({setVisible, visible, data, setData}) => {
         <Button
           style={{marginHorizontal: 2}}
           size='small'
-          onPress={addItem}>
+          accessoryLeft={alert.loading ? loadingIndicator : ''}
+          onPress={handleCreate}>
           CREATE
         </Button>
       </View>
@@ -85,6 +93,7 @@ export const CreateProposalModal = ({setVisible, visible, data, setData}) => {
             status='primary'
             keyboardType='numeric'
             placeholder='Enter amount'
+            disabled={alert.loading}
             {...amountInput}/>
 
           <Input
@@ -92,6 +101,7 @@ export const CreateProposalModal = ({setVisible, visible, data, setData}) => {
             style={{marginVertical: 8}}
             status='primary'
             placeholder='Enter Charity address'
+            disabled={alert.loading}
             {...charityAddressInput}/>
 
           <Input
@@ -100,6 +110,8 @@ export const CreateProposalModal = ({setVisible, visible, data, setData}) => {
             style={{marginVertical: 8}}
             status='primary'
             placeholder='Enter the description'
+            keyboardType='default'
+            disabled={alert.loading}
             {...descriptionInput}/>
         </Layout>
         
@@ -128,3 +140,11 @@ const closeIcon = (props) => {
     <Icon {...props} name='close-circle-outline'/>
   );
 };
+
+const loadingIndicator = (props) => {
+  return(
+    <View style={{...props.style, justifyContent: 'center', alignItems: 'center'}}>
+      <Spinner size='small' status='basic' />
+    </View>
+  );
+}

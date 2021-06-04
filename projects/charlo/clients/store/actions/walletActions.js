@@ -1,7 +1,7 @@
 import { FeeCurrency, requestAccountAddress, requestTxSig, waitForAccountAuth, waitForSignedTxs } from '@celo/dappkit';
 import * as Linking from 'expo-linking';
 
-import { contractInstance, kit } from '../../root';
+import { contractInstance, kit, web3 } from '../../root';
 import { alertActions } from './alertActions';
 import { walletConstants } from '../../constants/walletConstants';
 
@@ -11,7 +11,8 @@ export const walletActions = {
 
 function connect(params) {
   return async dispatch => {
-    dispatch(request("Connecting to wallet..."));
+    dispatch(alertActions.clear());
+    dispatch(alertActions.request("Connecting to wallet..."));
 
     const requestId = 'charlo_login';
     const dappName = 'Charlo';
@@ -27,26 +28,25 @@ function connect(params) {
       .then(res =>{
         kit.defaultAccount = res.address;
         dispatch(success(res));
+        dispatch(alertActions.success("Connection successful"))
       })
       .catch(err => {
-        dispatch(failure(err));
         dispatch(alertActions.error(err.toString()));
       });
   }
 
-  function request(message: string) { return { type: walletConstants.CONNECT_REQUEST, message } };
-  function success(res: object) { return { type: walletConstants.CONNECT_SUCCESS, res } };
-  function failure(error: any) { return { type: walletConstants.CONNECT_FAILURE, error } };
+  function success(res) { return { type: walletConstants.CONNECT_SUCCESS, res } };
 }
 
 function contribute(amount) {
   return async dispatch => {
-    dispatch(request('Contribution initiated...'));
+    dispatch(alertActions.clear());
+    dispatch(alertActions.request('Contribution initiated...'));
 
     try {
       const goldToken = await kit.contracts.getGoldToken();
       const contractAddress = await (await contractInstance).options.address
-      const txObject = goldToken.transfer(contractAddress, amount).txo;
+      const txObject = goldToken.transfer(contractAddress, web3.utils.toWei(amount, 'ether')).txo;
 
       const requestId = 'contribution';
       const dappName = 'Charlo';
@@ -59,7 +59,7 @@ function contribute(amount) {
             tx: txObject,
             from: kit && kit.defaultAccount,
             to: goldToken.contract.options.address,
-            feeCurrency: FeeCurrency.cGLD
+            feeCurrency: FeeCurrency.cUSD
           }
         ],
         { requestId, dappName, callback }
@@ -73,13 +73,11 @@ function contribute(amount) {
       const receipt = await tx.waitReceipt();
 
       dispatch(success(receipt));
+      dispatch(alertActions.success("Contribution successful"))
     } catch (err) {
-      dispatch(failure(err.toString()));
       dispatch(alertActions.error(err.toString()));
     }
   };
 
-  function request(message: string) { return { type: walletConstants.CONTRIBUTION_REQUEST, message } };
-  function success(res: object) { return { type: walletConstants.CONTRIBUTION_SUCCESS, res } };
-  function failure(error: any) { return { type: walletConstants.CONTRIBUTION_FAILURE, error } };
+  function success(res) { return { type: walletConstants.CONTRIBUTION_SUCCESS, res } };
 }
