@@ -6,7 +6,7 @@ import { proposalActions } from '../store/actions';
 
 export const CreateProposalModal = ({setVisible, visible}) => {
   const dispatch = useDispatch();
-  const alert = useSelector(state => state.alert);
+  const store = useSelector(state => state.proposal);
 
   const theme = useTheme();
 
@@ -28,15 +28,13 @@ export const CreateProposalModal = ({setVisible, visible}) => {
       amount: amountInput.value
     }));
 
-    await dispatch(proposalActions.getAllProposals());
-
-    console.log("Seguns: ", descriptionInput.value);
+    setVisible(false);
 
     amountInput.setValue('');
     descriptionInput.setValue('');
     charityAddressInput.setValue('');
 
-    setVisible(false);
+    await dispatch(proposalActions.getAllProposals());
   };
 
   const cardHeader = (props) => {
@@ -66,7 +64,7 @@ export const CreateProposalModal = ({setVisible, visible}) => {
         <Button
           style={{marginHorizontal: 2}}
           size='small'
-          accessoryLeft={alert.loading ? loadingIndicator : ''}
+          accessoryLeft={store.loadingNew ? loadingIndicator : ''}
           onPress={handleCreate}>
           CREATE
         </Button>
@@ -90,28 +88,25 @@ export const CreateProposalModal = ({setVisible, visible}) => {
           <Input
             size='medium'
             style={{marginVertical: 8}}
-            status='primary'
             keyboardType='numeric'
-            placeholder='Enter amount'
-            disabled={alert.loading}
+            placeholder='Enter amount in Celo'
+            disabled={store.loadingNew}
             {...amountInput}/>
 
           <Input
             size='medium'
             style={{marginVertical: 8}}
-            status='primary'
             placeholder='Enter Charity address'
-            disabled={alert.loading}
+            disabled={store.loadingNew}
             {...charityAddressInput}/>
 
           <Input
             multiline={true}
             textStyle={{minHeight: 64}}
             style={{marginVertical: 8}}
-            status='primary'
             placeholder='Enter the description'
             keyboardType='default'
-            disabled={alert.loading}
+            disabled={store.loadingNew}
             {...descriptionInput}/>
         </Layout>
         
@@ -123,16 +118,19 @@ export const CreateProposalModal = ({setVisible, visible}) => {
 const useInputState = (name, initialValue = '') => {
   const [value, setValue] = React.useState(initialValue);
 
-  let caption;
+  let caption, status;
   if (value === '') {
     caption = `${name} cannot be empty`;
-  }
 
-  if (name === 'Description' && value.length < 20) {
-    caption = `${name} must be more than 20 characters`
-  }
+    if (name === 'Description' && value.length < 20) {
+      caption = `${name} must be more than 20 characters`;
+    }
 
-  return {value, onChangeText: setValue, caption, setValue};
+    status = 'danger';
+    
+  } else status = 'success'
+
+  return {value, onChangeText: setValue, caption, status, setValue};
 };
 
 const closeIcon = (props) => {

@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { Alert } from 'react-native';
 import { SafeAreaView, StyleSheet, View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { Layout, Button, Text, Spinner } from '@ui-kitten/components';
@@ -10,11 +9,14 @@ import { walletActions } from '../store/actions';
 
 export const WelcomePage = ({navigation}) => {
   const dispatch = useDispatch();
-  const alert = useSelector(state => state.alert);
+  const wallet = useSelector(state => state.wallet);
 
   const login = async () => {
     if (!kit.defaultAccount) {
-      dispatch(walletActions.connect());
+      await dispatch(walletActions.connect());
+
+      await dispatch(walletActions.getRole());
+
     } else navigation.navigate("ProposalsPage");
   }
 
@@ -29,7 +31,7 @@ export const WelcomePage = ({navigation}) => {
       <Button
         raised='true'
         onPress={login}
-        accessoryLeft={alert.loading ? loadingIndicator : ""}
+        accessoryLeft={wallet.loading ? loadingIndicator : ""}
       >Connect To Wallet</Button>
 
       <Text style={styles.text}>

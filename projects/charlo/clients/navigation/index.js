@@ -12,9 +12,6 @@ import { CustomSidebarMenu } from  './CustomSidebarMenu';
 
 
 export function Navigation({colorScheme}) {
-  const alert = useSelector(state => state.alert);
-  const theme = useTheme();
-
   return(
     <NavigationContainer>
       <RootNavigator />
@@ -82,7 +79,7 @@ function welcomeScreenStack({navigation}) {
         name='ProposalsPage'
         component={ProposalsPage}
         options={{
-          title: 'Proposals Page',
+          title: 'Proposals',
           headerLeft: () => (
             <NavigationDrawerStructure navigationProps={navigation} />
           ),
@@ -100,14 +97,16 @@ function welcomeScreenStack({navigation}) {
 }
 
 function profileScreenStack({navigation}) {
+  const wallet = useSelector(state => state.wallet);
   const theme = useTheme();
+
   return(
     <Stack.Navigator initialRouteName='ProfilePage'>
       <Stack.Screen
         name="ProfilePage"
         component={ProfilePage}
         options={{
-          title: 'Profile',
+          title: `Profile - ${wallet.isStakeholder ? 'Stakeholder' : wallet.isContributor ?'Contributor' : ''}`,
           headerLeft: () => (
             <NavigationDrawerStructure navigationProps={navigation} />
           ),

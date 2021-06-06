@@ -17,6 +17,7 @@ function create(proposal) {
   return async (dispatch) => {
     dispatch(alertActions.clear());
     dispatch(alertActions.request("Create proposal initiated..."));
+    dispatch(request())
 
     try {
       const contractAddress = await (await contractInstance).options.address;
@@ -52,16 +53,20 @@ function create(proposal) {
       dispatch(alertActions.success("Proposal successful"));
     } catch (err) {
       dispatch(alertActions.error(err.toString()));
+      dispatch(failed());
     }
   };
 
+  function request(message) { return { type: proposalConstants.CREATE_PROPOSAL_REQUEST }}
   function success(res) { return { type: proposalConstants.CREATE_PROPOSAL_SUCCESS, res } };
+  function failed() { return { type: proposalConstants.CREATE_PROPOSAL_FAILED }}
 }
 
 function getAllProposals() {
-  return async dispatch => {
+  return async (dispatch) => {
     dispatch(alertActions.clear());
     dispatch(alertActions.request('Fetching all proposals...'));
+    dispatch(request());
 
     try {
       const allProposals = await (await contractInstance).methods.getProposals().call();
@@ -70,16 +75,20 @@ function getAllProposals() {
       dispatch(alertActions.success("Fetch successful"));
     } catch (err) {
       dispatch(alertActions.error(err.toString()));
+      dispatch(failed())
     }
   };
 
+  function request() { return { type: proposalConstants.GET_ALL_PROPOSAL_REQUEST } };
   function success(proposals) { return { type: proposalConstants.GET_ALL_PROPOSAL_SUCCESS, proposals } };
+  function failed() { return { type: proposalConstants.GET_ALL_PROPOSAL_FAILED } };
 }
 
 function getProposal(id) {
-  return async dispatch => {
+  return async (dispatch) => {
     dispatch(alertActions.clear());
     dispatch(alertActions.request(`Fetching proposal with id ${id}`));
+    dispatch(request())
 
     try {
       const proposal = await (await contractInstance).methods.getProposal(id).call();
@@ -88,8 +97,11 @@ function getProposal(id) {
       dispatch(alertActions.success("Fetch successful"));
     } catch (err) {
       dispatch(alertActions.error(err.toString()));
+      dispatch(failed());
     }
   };
 
+  function request() { return { type: proposalConstants.GET_PROPOSAL_REQUEST } };
   function success(proposal) { return { type: proposalConstants.GET_PROPOSAL_SUCCESS, proposal } };
+  function failed() { return { type: proposalConstants.GET_PROPOSAL_FAILED } };
 }

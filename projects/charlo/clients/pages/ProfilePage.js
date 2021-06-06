@@ -5,23 +5,38 @@ import { useDispatch, useSelector } from 'react-redux';
 
 import { ViewProposalModal } from '../components';
 import { walletActions } from '../store/actions';
+import { contractInstance, kit } from '../root';
 
 export const ProfilePage = ({ navigation }) => {
   const [visible, setVisible] = React.useState(false);
 
   const dispatch = useDispatch();
-  const alert = useSelector(state => state.alert);
+  const wallet = useSelector(state => state.wallet);
+  const store = useSelector(state => state.proposal);
 
   const amountInput = useInputState('Amount');
 
   const theme = useTheme();
 
-  const contribute = () => {
-    if (amountInput.value === '') {
+  const contribute = async () => {
+    const contributed = amountInput.value;
+    if (contributed === '') {
       return;
     }
 
-    dispatch(walletActions.contribute(amountInput.value));
+    await dispatch(walletActions.contribute(contributed));
+
+    await dispatch(walletActions.getRole());
+
+    if (!wallet.isStakeholder) {
+      const totalContributed = contributed + wallet.contributed;
+
+      if (totalContributed >= 5 || !wallet.isContributor) {
+        await dispatch(walletActions.grantRole(contributed));
+
+        await dispatch(walletActions.getRole());
+      }
+    }
 
     amountInput.setValue('');
   };
@@ -66,18 +81,19 @@ export const ProfilePage = ({ navigation }) => {
           <Button
             size='small'
             onPress={contribute}
-            accessoryLeft={alert.loading ? loadingIndicator : ''}
+            accessoryLeft={wallet.loading ? loadingIndicator : ''}
             >
             CONTRIBUTE
           </Button>
         </Card>
 
-        {
-          alert.loading ? <Spinner status='primary' size='giant' /> : null
-        }
+        {/* {
+          store.loadingAll ? <Spinner status='primary' size='giant' /> : null
+        } */}
 
         <Layout style={{flex: 5}}>
-          <List pagingEnabled='true'
+          <List
+            style={{backgroundColor: theme['color-basic-800']}}
             contentContainerStyle={{paddingHorizontal: 8, paddingVertical: 4}}
             data={data}
             renderItem={cardItem}/>

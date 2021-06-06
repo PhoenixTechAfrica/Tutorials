@@ -13,7 +13,7 @@ export const ProposalsPage = ({ navigation }) => {
 
   const dispatch = useDispatch();
   const store = useSelector(state => state.proposal);
-  const alert = useSelector(state => state.alert);
+  const wallet = useSelector(state => state.wallet);
 
   const theme = useTheme();
 
@@ -58,21 +58,24 @@ export const ProposalsPage = ({ navigation }) => {
     <SafeAreaView style={{ flex: 1 }}>
       <Layout style={{ flex: 1, alignItems: 'center', padding: 16 }}>
 
+        {
+          wallet.isStakeholder ?
           <Button
             size='medium'
+            style={{marginVertical: 8}}
             onPress={() => setCreateVisible(true)}
-            accessoryLeft={alert.loading ? loadingIndicator : ''}
-          >Create Proposal</Button>
-
-        {
-          alert.loading ? <Spinner status='primary' size='giant' /> : 
-          <List
-          contentContainerStyle={{paddingHorizontal: 8, paddingVertical: 4}}
-          data={store.proposals}
-          renderItem={cardItem}/>
+          >Create Proposal</Button> : null
         }
 
-        
+        {
+          store.loadingAll ? <Spinner status='primary' size='giant' /> : 
+          store.proposals.length !== 0 ?
+          <List
+          style={{backgroundColor: theme['color-basic-800']}}
+          contentContainerStyle={{paddingHorizontal: 8, paddingVertical: 4}}
+          data={store.proposals}
+          renderItem={cardItem}/> : <Text>The list of proposal is empty</Text>
+        }
 
         <CreateProposalModal
           setVisible={setCreateVisible}

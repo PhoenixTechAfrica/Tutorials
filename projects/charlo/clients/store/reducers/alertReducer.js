@@ -5,19 +5,16 @@ export function alert(state = {}, action) {
         case alertConstants.REQUEST:
             return {
                 type: 'alert-request',
-                loading: true,
                 message: action.message
             }
         case alertConstants.SUCCESS:
             return {
                 type: 'alert-success',
-                loading: false,
                 message: action.message
             };
         case alertConstants.ERROR:
             return {
                 type: 'alert-danger',
-                loading: false,
                 message: action.message
             };
         case alertConstants.CLEAR:

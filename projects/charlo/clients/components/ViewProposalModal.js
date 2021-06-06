@@ -11,7 +11,6 @@ import { web3 } from '../root';
 export const ViewProposalModal = ({setVisible, visible}) => {
   const dispatch = useDispatch();
   const store = useSelector(state => state.proposal);
-  const alert = useSelector(state => state.alert);
 
   const theme = useTheme();
 
@@ -68,7 +67,7 @@ export const ViewProposalModal = ({setVisible, visible}) => {
         footer={cardFooter}>
           
           {
-            alert.loading ? <Spinner status='primary' size='giant' /> : 
+            store.loadingOne ? <Spinner status='primary' size='giant' /> : 
             <>
             <Layout style={{flex: 1, width: 250}}>
               <Text style={{marginVertical: 8}}>Description: {store.proposal.description}</Text>

@@ -155,13 +155,13 @@ contract CharloDAO is ReentrancyGuard, AccessControl {
     }
 
     receive() external payable {
-        makeStakeholder();
+        emit ContributionReceived(msg.sender, msg.value);
     }
 
     /// @notice This function adds a new stakeholder if the total contribution is >= 5 celo
-    function makeStakeholder() private {
+    function makeStakeholder(uint256 amount) external {
         address account = msg.sender;
-        uint256 amountContributed = msg.value;
+        uint256 amountContributed = amount;
         if (!hasRole(STAKEHOLDER_ROLE, account)) {
             uint256 totalContributed =
                 contributors[account] + amountContributed;
@@ -185,7 +185,7 @@ contract CharloDAO is ReentrancyGuard, AccessControl {
         view
         returns (CharityProposal[] memory props)
     {
-        props = new CharityProposal[](numOfProposals + 1);
+        props = new CharityProposal[](numOfProposals);
 
         for (uint256 index = 0; index < numOfProposals; index++) {
             props[index] = charityProposals[index];
@@ -200,37 +200,33 @@ contract CharloDAO is ReentrancyGuard, AccessControl {
         return charityProposals[proposalId];
     }
 
-    function getStakeholderVotes(address stakeholder)
-        public
-        view
-        returns (uint256[] memory)
-    {
-        return stakeholderVotes[stakeholder];
+    function getStakeholderVotes() public view returns (uint256[] memory) {
+        return stakeholderVotes[msg.sender];
     }
 
-    function getStakeholderBalance(address stakeholder)
+    function getStakeholderBalance()
         public
         view
         onlyStakeholder("User is not a stakeholder")
         returns (uint256)
     {
-        return stakeholders[stakeholder];
+        return stakeholders[msg.sender];
     }
 
-    function isStakeholder(address stakeholder) public view returns (bool) {
-        return stakeholders[stakeholder] > 0;
+    function isStakeholder() public view returns (bool) {
+        return stakeholders[msg.sender] > 0;
     }
 
-    function getContributorBalance(address contributor)
+    function getContributorBalance()
         public
         view
         onlyContributor("User is not a contributor")
         returns (uint256)
     {
-        return contributors[contributor];
+        return contributors[msg.sender];
     }
 
-    function isContributor(address contributor) public view returns (bool) {
-        return contributors[contributor] > 0;
+    function isContributor() public view returns (bool) {
+        return contributors[msg.sender] > 0;
     }
 }
