@@ -33,26 +33,36 @@ export const ViewProposalModal = ({setVisible, visible}) => {
         <Button
           style={{marginHorizontal: 2}}
           size='small'
-          status='success'>
+          status='success'
+          accessoryLeft={store.loadingVote ? loadingIndicator : ''}
+          onPress={handleFor}>
           UPVOTE
         </Button>
         <Button
           style={{marginHorizontal: 2}}
           size='small'
-          status='warning'>
+          status='warning'
+          accessoryLeft={store.loadingVote ? loadingIndicator : ''}
+          onPress={handleAgainst}>
           DOWNVOTE
         </Button>
       </View>
     );
   };
 
-  // const handleFor = () => {
-  //   setProposal({...proposal, votesFor: ++proposal.votesFor});
-  // };
+  const handleFor = async () => {
+    await dispatch(proposalActions.voteOnProposal(store.proposal.id, true));
+    await dispatch(proposalActions.getAllProposals());
 
-  // const handleAgainst = () => {
-  //   setProposal({...proposal, votesAgainst: ++proposal.votesAgainst});
-  // };
+    setVisible(false);
+  };
+
+  const handleAgainst = async () => {
+    await dispatch(proposalActions.voteOnProposal(store.proposal.id, false));
+    await dispatch(proposalActions.getAllProposals());
+
+    setVisible(false);
+  };
 
   return(
     <Modal
@@ -92,5 +102,13 @@ export const ViewProposalModal = ({setVisible, visible}) => {
 const closeIcon = (props) => {
   return(
     <Icon {...props} name='close-circle-outline'/>
+  );
+};
+
+const loadingIndicator = (props) => {
+  return(
+    <View style={{...props.style, justifyContent: 'center', alignItems: 'center'}}>
+      <Spinner size='small' status='basic' />
+    </View>
   );
 }

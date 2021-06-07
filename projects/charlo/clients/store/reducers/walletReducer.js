@@ -6,7 +6,7 @@ const initialState = {
   phone: '',
   isStakeholder: false,
   isContributor: false,
-  contributed: 0,
+  contributed: "0",
   txHash: '',
   loading: false
 };
@@ -42,7 +42,6 @@ export function wallet(state = initialState, action) {
         isStakeholder: action.role.isStakeholder,
         isContributor: action.role.isContributor,
         contributed: action.role.contributed,
-        txHash: false,
         loading: false
       };
     case walletConstants.ROLE_SUCCESS:
@@ -57,7 +56,6 @@ export function wallet(state = initialState, action) {
     case walletConstants.ROLE_FAILED:
       return {
         ...state,
-        txHash: '',
         loading: false
       };
     default:

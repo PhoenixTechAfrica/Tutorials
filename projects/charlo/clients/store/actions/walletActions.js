@@ -20,26 +20,26 @@ function connect(params) {
     dispatch(alertActions.request("Connecting to wallet..."));
     dispatch(request())
 
-    const requestId = 'charlo_login';
-    const dappName = 'Charlo';
-    const callback = Linking.makeUrl('ProposalsPage');
+    try {
+      const requestId = 'charlo_login';
+      const dappName = 'Charlo';
+      const callback = Linking.makeUrl('ProposalsPage');
 
-    requestAccountAddress({
-      requestId,
-      dappName,
-      callback
-    });
-
-    waitForAccountAuth(requestId)
-      .then(res =>{
-        kit.defaultAccount = res.address;
-        dispatch(success(res));
-        dispatch(alertActions.success("Connection successful"))
-      })
-      .catch(err => {
-        dispatch(alertActions.error(err.toString()));
-        dispatch(failed());
+      requestAccountAddress({
+        requestId,
+        dappName,
+        callback
       });
+
+      const response = await waitForAccountAuth(requestId);
+
+      kit.defaultAccount = response.address;
+      dispatch(success(response));
+      dispatch(alertActions.success("Connection successful"))
+    } catch (err) {
+      dispatch(alertActions.error(err.toString()));
+        dispatch(failed());
+    }
   }
 
   function request() { return { type: walletConstants.CONNECT_REQUEST} };
@@ -125,8 +125,8 @@ function grantRole(amount) {
       );
 
       const response = await waitForSignedTxs(requestId);
-      const rawTX = response.rawTxs[0];
-      const result = await toTxResult(kit.web3.eth.sendSignedTransaction(rawTX)).waitReceipt();
+      const rawTx = response.rawTxs[0];
+      const result = await toTxResult(kit.web3.eth.sendSignedTransaction(rawTx)).waitReceipt();
 
       dispatch(success(result));
       dispatch(alertActions.success('Role assignment successful'));
@@ -144,28 +144,23 @@ function grantRole(amount) {
 function getRole() {
   return async (dispatch) => {
     dispatch(alertActions.clear());
-    dispatch(alertActions.request("Fetching role"));
+    dispatch(alertActions.request("Fetching role..."));
     dispatch(request());
 
-    
     try {
-      let isStakeholder = await (await contractInstance).methods.isStakeholder().call();
-
-      console.log("Segun1: ", isStakeholder);
+      const account = kit.defaultAccount;
+      let isStakeholder = await (await contractInstance).methods.isStakeholder().call({from: account});
 
       let isContributor = false;
-      let contributed = 0;
+      let contributed = "0";
 
       if (isStakeholder) {
-        contributed = await (await contractInstance).methods.getStakeholderBalance().call();
-        console.log("Segun2: ", contributed);
+        contributed = await (await contractInstance).methods.getStakeholderBalance().call({from: account});
       } else {
-        isContributor = await (await contractInstance).methods.isContributor().call();
-        console.log("Segun3: ", isContributor);
+        isContributor = await (await contractInstance).methods.isContributor().call({from: account});
 
         if (isContributor) {
-          contributed = await (await contractInstance).methods.getContributorBalance().call();
-          console.log("Segun4: ", contributed);
+          contributed = await (await contractInstance).methods.getContributorBalance().call({from: account});
         }
       }
 

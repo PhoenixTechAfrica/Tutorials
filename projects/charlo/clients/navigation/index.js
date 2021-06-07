@@ -47,25 +47,6 @@ function RootNavigator() {
 const Stack = createStackNavigator();
 const Drawer = createDrawerNavigator();
 
-const NavigationDrawerStructure = (props) => {
-  const theme = useTheme();
-  const toggleDrawer = () => {
-    props.navigationProps.toggleDrawer();
-  };
-
-  return(
-    <Layout style={{flexDirection: 'row', backgroundColor: theme['color-primary-default']}} >
-      <TouchableOpacity onPress={toggleDrawer}>
-        <Image
-          
-          source={require('../assets/images/drawerWhite.png')}
-          style={{width: 25, height: 25, marginLeft: 5}}
-        />
-      </TouchableOpacity>
-    </Layout>
-  );
-};
-
 function welcomeScreenStack({navigation}) {
   const theme = useTheme();
   return(
@@ -106,7 +87,7 @@ function profileScreenStack({navigation}) {
         name="ProfilePage"
         component={ProfilePage}
         options={{
-          title: `Profile - ${wallet.isStakeholder ? 'Stakeholder' : wallet.isContributor ?'Contributor' : ''}`,
+          title: `Profile${wallet.isStakeholder ? ' - Stakeholder' : wallet.isContributor ?' - Contributor' : ''}`,
           headerLeft: () => (
             <NavigationDrawerStructure navigationProps={navigation} />
           ),
@@ -122,3 +103,22 @@ function profileScreenStack({navigation}) {
     </Stack.Navigator>
   );
 }
+
+const NavigationDrawerStructure = (props) => {
+  const theme = useTheme();
+  const toggleDrawer = () => {
+    props.navigationProps.toggleDrawer();
+  };
+
+  return(
+    <Layout style={{flexDirection: 'row', backgroundColor: theme['color-primary-default']}} >
+      <TouchableOpacity onPress={toggleDrawer}>
+        <Image
+          
+          source={require('../assets/images/drawerWhite.png')}
+          style={{width: 25, height: 25, marginLeft: 5}}
+        />
+      </TouchableOpacity>
+    </Layout>
+  );
+};

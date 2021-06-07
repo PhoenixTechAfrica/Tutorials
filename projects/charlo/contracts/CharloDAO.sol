@@ -200,7 +200,12 @@ contract CharloDAO is ReentrancyGuard, AccessControl {
         return charityProposals[proposalId];
     }
 
-    function getStakeholderVotes() public view returns (uint256[] memory) {
+    function getStakeholderVotes()
+        public
+        view
+        onlyStakeholder("User is not a stakeholder")
+        returns (uint256[] memory)
+    {
         return stakeholderVotes[msg.sender];
     }
 

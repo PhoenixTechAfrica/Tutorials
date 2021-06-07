@@ -10,14 +10,15 @@ import { proposalConstants } from '../../constants'
 export const proposalActions = {
   create,
   getAllProposals,
-  getProposal
+  getProposal,
+  voteOnProposal
 }
 
 function create(proposal) {
   return async (dispatch) => {
     dispatch(alertActions.clear());
     dispatch(alertActions.request("Create proposal initiated..."));
-    dispatch(request())
+    dispatch(request());
 
     try {
       const contractAddress = await (await contractInstance).options.address;
@@ -104,4 +105,49 @@ function getProposal(id) {
   function request() { return { type: proposalConstants.GET_PROPOSAL_REQUEST } };
   function success(proposal) { return { type: proposalConstants.GET_PROPOSAL_SUCCESS, proposal } };
   function failed() { return { type: proposalConstants.GET_PROPOSAL_FAILED } };
+}
+
+function voteOnProposal(id, support) {
+  return async (dispatch) => {
+    dispatch(alertActions.clear());
+    dispatch(alertActions.request("Voting initiated..."));
+    dispatch(request());
+
+    try {
+      const contractAddress = await (await contractInstance).options.address;
+
+      const requestId = 'vote_proposal';
+      const dappName = 'Charlo';
+      const callback = Linking.makeUrl('ProposalPage');
+
+      const txObject = await (await contractInstance).methods.vote(id, support);
+
+      requestTxSig(
+        kit,
+        [
+          {
+            from: kit.defaultAccount,
+            to: contractAddress,
+            tx: txObject,
+            feeCurrency: FeeCurrency.cUSD
+          }
+        ],
+        {requestId, dappName, callback}
+      );
+
+      const response = await waitForSignedTxs(requestId);
+      const rawTx = response.rawTxs[0];
+      const result = await toTxResult(kit.web3.eth.sendSignedTransaction(rawTx)).waitReceipt();
+
+      dispatch(success(result));
+      dispatch(alertActions.success('Voted successful'));
+    } catch (err) {
+      dispatch(alertActions.error(err.toString()));
+      dispatch(failed());
+    }
+  };
+
+  function request() { return { type: proposalConstants.VOTE_PROPOSAL_REQUEST } };
+  function success(res) { return { type: proposalConstants.VOTE_PROPOSAL_SUCCESS, res } };
+  function failed() { return { type: proposalConstants.VOTE_PROPOSAL_FAILED } };
 }

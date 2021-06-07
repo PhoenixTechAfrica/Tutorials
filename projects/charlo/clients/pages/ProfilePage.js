@@ -26,17 +26,9 @@ export const ProfilePage = ({ navigation }) => {
 
     await dispatch(walletActions.contribute(contributed));
 
+    await dispatch(walletActions.grantRole(contributed));
+
     await dispatch(walletActions.getRole());
-
-    if (!wallet.isStakeholder) {
-      const totalContributed = contributed + wallet.contributed;
-
-      if (totalContributed >= 5 || !wallet.isContributor) {
-        await dispatch(walletActions.grantRole(contributed));
-
-        await dispatch(walletActions.getRole());
-      }
-    }
 
     amountInput.setValue('');
   };

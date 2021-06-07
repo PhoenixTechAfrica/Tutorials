@@ -8,7 +8,8 @@ const initialState = {
   txHash: '',
   loadingAll: false,
   loadingOne: false,
-  loadingNew: false
+  loadingNew: false,
+  loadingVote: false
 };
 
 export function proposal(state = initialState, action) {
@@ -27,6 +28,11 @@ export function proposal(state = initialState, action) {
       return {
         ...state,
         loadingOne: true
+      };
+    case proposalConstants.VOTE_PROPOSAL_REQUEST:
+      return {
+        ...state,
+        loadingVote: true
       };
     case proposalConstants.CREATE_PROPOSAL_SUCCESS:
       return {
@@ -57,7 +63,24 @@ export function proposal(state = initialState, action) {
           paidBy: action.proposal[10]
         },
         loadingOne: false
-      }
+      };
+    case proposalConstants.VOTE_PROPOSAL_SUCCESS:
+      return {
+        ...state,
+        txHash: action.res.transactionHash,
+        loadingVote: false
+      };
+    case proposalConstants.CREATE_PROPOSAL_FAILED:
+    case proposalConstants.GET_ALL_PROPOSAL_FAILED:
+    case proposalConstants.GET_PROPOSAL_FAILED:
+    case proposalConstants.VOTE_PROPOSAL_FAILED:
+      return {
+        ...state,
+        loadingNew: false,
+        loadingAll: false,
+        loadingOne: false,
+        loadingVote: false
+      };
     default:
       return state;
   }
