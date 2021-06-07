@@ -17,14 +17,10 @@ export const WelcomePage = ({navigation}) => {
 
       await dispatch(walletActions.getRole());
 
+      navigation.navigate("ProposalsPage");
+
     } else navigation.navigate("ProposalsPage");
   }
-
-  React.useEffect(() => {
-    if (kit.defaultAccount) {
-      navigation.navigate("ProposalsPage");
-    }
-  });
 
   return (
     <Layout style={styles.container}>

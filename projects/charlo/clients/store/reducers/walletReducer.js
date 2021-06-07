@@ -1,5 +1,4 @@
-import { walletConstants } from '../../constants/walletConstants'
-import { web3 } from '../../root';
+import { walletConstants } from '../../constants/walletConstants';
 
 const initialState = {
   address: '',
@@ -7,6 +6,7 @@ const initialState = {
   isStakeholder: false,
   isContributor: false,
   contributed: "0",
+  votes: [],
   txHash: '',
   loading: false
 };
@@ -17,6 +17,7 @@ export function wallet(state = initialState, action) {
     case walletConstants.CONTRIBUTION_REQUEST:
     case walletConstants.ROLE_REQUEST:
     case walletConstants.ROLE_CHECK_REQUEST:
+    case walletConstants.GET_VOTES_REQUEST:
       return {
         ...state,
         txHash: '',
@@ -50,10 +51,17 @@ export function wallet(state = initialState, action) {
         txHash: action.res.transactionHash,
         loading: false,
       };
+    case walletConstants.GET_VOTES_SUCCESS:
+      return {
+        ...state,
+        votes: action.votes,
+        loading: false,
+      };
     case walletConstants.CONNECT_FAILED:
     case walletConstants.CONTRIBUTION_FAILED:
     case walletConstants.ROLE_CHECK_FAILED:
     case walletConstants.ROLE_FAILED:
+    case walletConstants.GET_VOTES_FAILED:
       return {
         ...state,
         loading: false

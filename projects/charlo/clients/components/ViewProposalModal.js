@@ -4,7 +4,7 @@ import { Button, Card, Icon, Input, Layout, Modal, Text, useTheme, Spinner } fro
 import { useDispatch, useSelector } from 'react-redux';
 import BigNumber from 'bignumber.js';
 
-import { proposalActions } from '../store/actions';
+import { proposalActions, walletActions } from '../store/actions';
 import { web3 } from '../root';
 
 
@@ -55,6 +55,8 @@ export const ViewProposalModal = ({setVisible, visible}) => {
     await dispatch(proposalActions.getAllProposals());
 
     setVisible(false);
+
+    await dispatch(walletActions.getVotes());
   };
 
   const handleAgainst = async () => {
@@ -62,6 +64,8 @@ export const ViewProposalModal = ({setVisible, visible}) => {
     await dispatch(proposalActions.getAllProposals());
 
     setVisible(false);
+
+    await dispatch(walletActions.getVotes());
   };
 
   return(

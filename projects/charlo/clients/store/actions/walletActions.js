@@ -11,7 +11,8 @@ export const walletActions = {
   connect,
   contribute,
   grantRole,
-  getRole
+  getRole,
+  getVotes,
 }
 
 function connect(params) {
@@ -179,4 +180,27 @@ function getRole() {
   function request() { return { type: walletConstants.ROLE_CHECK_REQUEST}};
   function success(role) { return { type: walletConstants.ROLE_CHECK_SUCCESS, role}};
   function failed() { return { type: walletConstants.ROLE_CHECK_FAILED}};
+}
+
+function getVotes() {
+  return async (dispatch) => {
+    dispatch(alertActions.clear());
+    dispatch(alertActions.request("Fetching votes..."));
+    dispatch(request());
+
+    try {
+      const account = kit.defaultAccount;
+      let votes = await (await contractInstance).methods.getStakeholderVotes().call({from: kit.defaultAccount});
+
+      dispatch(success(votes));
+      dispatch(alertActions.success("Role fetch successful"));
+    } catch (err) {
+      dispatch(alertActions.error(err.toString()));
+      dispatch(failed())
+    }
+  };
+  
+  function request() { return { type: walletConstants.GET_VOTES_REQUEST } }
+  function success(votes) { return { type: walletConstants.GET_VOTES_SUCCESS, votes } }
+  function failed() { return { type: walletConstants.GET_VOTES_FAILED } }
 }

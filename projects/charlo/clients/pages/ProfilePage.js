@@ -4,11 +4,12 @@ import { Button, Card, Input, Layout, List, useTheme, Text, Spinner } from '@ui-
 import { useDispatch, useSelector } from 'react-redux';
 
 import { ViewProposalModal } from '../components';
-import { walletActions } from '../store/actions';
+import { walletActions, proposalActions } from '../store/actions';
 import { contractInstance, kit } from '../root';
 
 export const ProfilePage = ({ navigation }) => {
   const [visible, setVisible] = React.useState(false);
+  const [votes, setVotes] = React.useState([]);
 
   const dispatch = useDispatch();
   const wallet = useSelector(state => state.wallet);
@@ -33,20 +34,41 @@ export const ProfilePage = ({ navigation }) => {
     amountInput.setValue('');
   };
 
-  const data = new Array(8).fill({
-    desc: 'Lorem ipsum dolor sit amet consectetur adipisicing elit. Laborum itaque nesciunt hic nisi? Repellendus laboriosam, fugiat cupiditate vitae qui distinctio quas numquam quidem, ipsa quos vel eligendi veniam magni dolores!'
-  })
+  React.useEffect(() => {
+    dispatch(walletActions.getVotes());
+  }, []);
+
+  React.useEffect(() => {
+    getVotes();
+  }, [wallet.votes.length]);
+
+  const getVotes = () => {
+    const stakeholderVotes = store.proposals.filter(
+      function(e) {
+        return this.indexOf(e[0]) >= 0;
+      },
+      wallet.votes
+    );
+    
+    setVotes(stakeholderVotes);
+  };
 
   const cardItem = (info) => {
     return(
       <Card
         style={{borderColor: theme['color-primary-default'], marginVertical: 4}}
-        footer={props => cardFooter(props, {for: 10, against: 3})}
-        onPress={() => setVisible(true)}>
+        footer={props => cardFooter(props, {for: info.item[3], against: info.item[4]})}
+        onPress={() => getProposal(info.item[0])}>
         
-        <Text category='s2' numberOfLines={4} ellipsizeMode='tail'>{info.item.desc}</Text>
+        <Text category='s2' numberOfLines={4} ellipsizeMode='tail'>{info.item[5]}</Text>
       </Card>
     );
+  };
+
+  const getProposal = (id) => {
+    dispatch(proposalActions.getProposal(id));
+
+    setVisible(true);
   };
   
   const cardFooter = (props, info) => {
@@ -60,8 +82,8 @@ export const ProfilePage = ({ navigation }) => {
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
-      <Layout style={{ flex: 1, padding: 8 }}>
-        <Card style={{flexDirection: 'column', justifyContent: 'space-between', borderColor: theme['color-primary-default']}}>
+      <Layout style={{ flex: 1, alignItems: 'center', padding: 16 }}>
+        <Card style={{flexDirection: 'column', justifyContent: 'space-between', borderColor: theme['color-basic-800']}}>
           <Input
             style={{marginVertical: 8}}
             size='medium'
@@ -79,16 +101,20 @@ export const ProfilePage = ({ navigation }) => {
           </Button>
         </Card>
 
-        {/* {
-          store.loadingAll ? <Spinner status='primary' size='giant' /> : null
-        } */}
+        {
+          wallet.loading ? <Spinner status='primary' size='giant' /> : null
+        }
 
         <Layout style={{flex: 5}}>
-          <List
+          {
+            wallet.loading ?
+            <Text>The list of proposal voted on is empty</Text> :
+            <List
             style={{backgroundColor: theme['color-basic-800']}}
             contentContainerStyle={{paddingHorizontal: 8, paddingVertical: 4}}
-            data={data}
+            data={votes}
             renderItem={cardItem}/>
+          }
         </Layout>
 
         <ViewProposalModal
