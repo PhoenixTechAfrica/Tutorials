@@ -4,18 +4,18 @@ import { useDispatch, useSelector } from 'react-redux';
 import { Layout, Button, Text, Spinner } from '@ui-kitten/components';
 
 import { kit } from '../root';
-import { walletActions } from '../store/actions';
+import { profileActions } from '../store/actions';
 
 
 export const WelcomePage = ({navigation}) => {
   const dispatch = useDispatch();
-  const wallet = useSelector(state => state.wallet);
+  const profile = useSelector(state => state.profile);
 
   const login = async () => {
     if (!kit.defaultAccount) {
-      await dispatch(walletActions.connect());
+      await dispatch(profileActions.connect());
 
-      await dispatch(walletActions.getRole());
+      await dispatch(profileActions.getRole());
 
       navigation.navigate("ProposalsPage");
 
@@ -27,7 +27,7 @@ export const WelcomePage = ({navigation}) => {
       <Button
         raised='true'
         onPress={login}
-        accessoryLeft={wallet.loading ? loadingIndicator : ""}
+        accessoryLeft={profile.loading ? loadingIndicator : ""}
       >Connect To Wallet</Button>
 
       <Text style={styles.text}>

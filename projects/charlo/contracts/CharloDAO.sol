@@ -144,6 +144,7 @@ contract CharloDAO is ReentrancyGuard, AccessControl {
             );
 
         charityProposal.paid = true;
+        charityProposal.paidBy = msg.sender;
 
         emit PaymentTransfered(
             msg.sender,

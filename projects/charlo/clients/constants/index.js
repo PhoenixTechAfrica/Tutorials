@@ -1,9 +1,9 @@
 import { alertConstants } from './alertConstants';
 import { proposalConstants } from './proposalConstants';
-import { walletConstants } from './walletConstants';
+import { profileConstants } from './profileConstants';
 
 export {
   alertConstants,
   proposalConstants,
-  walletConstants
+  profileConstants
 };

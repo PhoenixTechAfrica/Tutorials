@@ -78,7 +78,7 @@ function welcomeScreenStack({navigation}) {
 }
 
 function profileScreenStack({navigation}) {
-  const wallet = useSelector(state => state.wallet);
+  const profile = useSelector(state => state.profile);
   const theme = useTheme();
 
   return(
@@ -87,7 +87,7 @@ function profileScreenStack({navigation}) {
         name="ProfilePage"
         component={ProfilePage}
         options={{
-          title: `Profile${wallet.isStakeholder ? ' - Stakeholder' : wallet.isContributor ?' - Contributor' : ''}`,
+          title: `Profile${profile.isStakeholder ? ' - Stakeholder' : profile.isContributor ?' - Contributor' : ''}`,
           headerLeft: () => (
             <NavigationDrawerStructure navigationProps={navigation} />
           ),

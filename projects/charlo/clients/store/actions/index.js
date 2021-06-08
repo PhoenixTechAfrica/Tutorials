@@ -1,9 +1,9 @@
 import { alertActions } from './alertActions';
 import { proposalActions } from './proposalActions';
-import { walletActions } from './walletActions';
+import { profileActions } from './profileActions';
 
 export {
   alertActions,
   proposalActions,
-  walletActions
+  profileActions
 };

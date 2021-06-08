@@ -4,7 +4,7 @@ import { Button, Card, Input, Layout, List, useTheme, Text, Spinner } from '@ui-
 import { useDispatch, useSelector } from 'react-redux';
 
 import { ViewProposalModal } from '../components';
-import { walletActions, proposalActions } from '../store/actions';
+import { profileActions, proposalActions } from '../store/actions';
 import { contractInstance, kit } from '../root';
 
 export const ProfilePage = ({ navigation }) => {
@@ -12,7 +12,7 @@ export const ProfilePage = ({ navigation }) => {
   const [votes, setVotes] = React.useState([]);
 
   const dispatch = useDispatch();
-  const wallet = useSelector(state => state.wallet);
+  const profile = useSelector(state => state.profile);
   const store = useSelector(state => state.proposal);
 
   const amountInput = useInputState('Amount');
@@ -25,32 +25,44 @@ export const ProfilePage = ({ navigation }) => {
       return;
     }
 
-    await dispatch(walletActions.contribute(contributed));
+    await dispatch(profileActions.contribute(contributed));
 
-    await dispatch(walletActions.grantRole(contributed));
+    await dispatch(profileActions.grantRole(contributed));
 
-    await dispatch(walletActions.getRole());
+    await dispatch(profileActions.getRole());
 
     amountInput.setValue('');
   };
 
   React.useEffect(() => {
-    dispatch(walletActions.getVotes());
+    dispatch(profileActions.getVotes());
   }, []);
 
   React.useEffect(() => {
     getVotes();
-  }, [wallet.votes.length]);
+  }, [profile.votes.length]);
 
   const getVotes = () => {
     const stakeholderVotes = store.proposals.filter(
       function(e) {
         return this.indexOf(e[0]) >= 0;
       },
-      wallet.votes
+      profile.votes
     );
     
     setVotes(stakeholderVotes);
+  };
+
+  const getProposal = (id) => {
+    if (store.proposal.id == id) {
+      setVisible(true);
+
+      return;
+    }
+
+    dispatch(proposalActions.getProposal(id));
+
+    setVisible(true);
   };
 
   const cardItem = (info) => {
@@ -63,12 +75,6 @@ export const ProfilePage = ({ navigation }) => {
         <Text category='s2' numberOfLines={4} ellipsizeMode='tail'>{info.item[5]}</Text>
       </Card>
     );
-  };
-
-  const getProposal = (id) => {
-    dispatch(proposalActions.getProposal(id));
-
-    setVisible(true);
   };
   
   const cardFooter = (props, info) => {
@@ -95,19 +101,19 @@ export const ProfilePage = ({ navigation }) => {
           <Button
             size='small'
             onPress={contribute}
-            accessoryLeft={wallet.loading ? loadingIndicator : ''}
+            accessoryLeft={profile.loading ? loadingIndicator : ''}
             >
             CONTRIBUTE
           </Button>
         </Card>
 
         {
-          wallet.loading ? <Spinner status='primary' size='giant' /> : null
+          profile.loading ? <Spinner status='primary' size='giant' /> : null
         }
 
         <Layout style={{flex: 5}}>
           {
-            wallet.loading ?
+            (profile.loading || !profile.isStakeholder) ?
             <Text>The list of proposal voted on is empty</Text> :
             <List
             style={{backgroundColor: theme['color-basic-800']}}
@@ -119,7 +125,8 @@ export const ProfilePage = ({ navigation }) => {
 
         <ViewProposalModal
           setVisible={setVisible}
-          visible={visible}/>
+          visible={visible}
+          isPofile='true'/>
       </Layout>
     </SafeAreaView>
   );

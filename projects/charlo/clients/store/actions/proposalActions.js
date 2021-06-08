@@ -92,7 +92,21 @@ function getProposal(id) {
     dispatch(request())
 
     try {
-      const proposal = await (await contractInstance).methods.getProposal(id).call();
+      const response = await (await contractInstance).methods.getProposal(id).call();
+
+      const proposal = {
+        id: response[0],
+        amount: web3.utils.fromWei(response[1], 'ether'),
+        livePeriod: response[2],
+        for: response[3],
+        against: response[4],
+        description: response[5],
+        votingPassed: response[6],
+        paid: response[7],
+        charityAddress: response[8],
+        proposer: response[9],
+        paidBy: response[10]
+      }
 
       dispatch(success(proposal));
       dispatch(alertActions.success("Fetch successful"));

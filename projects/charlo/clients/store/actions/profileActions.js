@@ -4,15 +4,16 @@ import * as Linking from 'expo-linking';
 
 import { contractInstance, kit, web3 } from '../../root';
 import { alertActions } from './alertActions';
-import { walletConstants } from '../../constants/walletConstants';
+import { profileConstants } from '../../constants';
 
 
-export const walletActions = {
+export const profileActions = {
   connect,
   contribute,
+  payCharity,
   grantRole,
   getRole,
-  getVotes,
+  getVotes
 }
 
 function connect(params) {
@@ -22,6 +23,8 @@ function connect(params) {
     dispatch(request())
 
     try {
+      const goldToken = await kit.contracts.getGoldToken();
+      const contractAddress = await (await contractInstance).options.address;
       const requestId = 'charlo_login';
       const dappName = 'Charlo';
       const callback = Linking.makeUrl('ProposalsPage');
@@ -35,6 +38,8 @@ function connect(params) {
       const response = await waitForAccountAuth(requestId);
 
       kit.defaultAccount = response.address;
+      response.daoBalance = web3.utils.fromWei((await goldToken.balanceOf(contractAddress)).toString(), 'ether');
+      response.userBalance = web3.utils.fromWei((await goldToken.balanceOf(response.address)).toString(), 'ether');
       dispatch(success(response));
       dispatch(alertActions.success("Connection successful"))
     } catch (err) {
@@ -43,9 +48,9 @@ function connect(params) {
     }
   }
 
-  function request() { return { type: walletConstants.CONNECT_REQUEST} };
-  function success(res) { return { type: walletConstants.CONNECT_SUCCESS, res } };
-  function failed() { return { type: walletConstants.CONNECT_FAILED } };
+  function request() { return { type: profileConstants.CONNECT_REQUEST} };
+  function success(res) { return { type: profileConstants.CONNECT_SUCCESS, res } };
+  function failed() { return { type: profileConstants.CONNECT_FAILED } };
 }
 
 function contribute(amount) {
@@ -84,6 +89,9 @@ function contribute(amount) {
       const tx = await kit.connection.sendSignedTransaction(rawTx);
       const receipt = await tx.waitReceipt();
 
+      receipt.daoBalance = web3.utils.fromWei((await goldToken.balanceOf(contractAddress)).toString(), 'ether');
+      receipt.userBalance = web3.utils.fromWei((await goldToken.balanceOf(kit.defaultAccount)).toString(), 'ether');
+
       dispatch(success(receipt));
       dispatch(alertActions.success("Contribution successful"));
     } catch (err) {
@@ -92,9 +100,63 @@ function contribute(amount) {
     }
   };
 
-  function request() { return { type: walletConstants.CONTRIBUTION_REQUEST } };
-  function success(res) { return { type: walletConstants.CONTRIBUTION_SUCCESS, res } };
-  function failed() { return { type: walletConstants.CONTRIBUTION_FAILED } };
+  function request() { return { type: profileConstants.CONTRIBUTION_REQUEST } };
+  function success(res) { return { type: profileConstants.CONTRIBUTION_SUCCESS, res } };
+  function failed() { return { type: profileConstants.CONTRIBUTION_FAILED } };
+}
+
+function payCharity(proposal) {
+  return async (dispatch) => {
+
+    if (proposal.for <= proposal.against) {
+      dispatch(alertActions.error("Proposal does not have enough support"));
+
+      return;
+    }
+
+    dispatch(alertActions.clear());
+    dispatch(alertActions.request('Payment initiated...'));
+    dispatch(request());
+
+    try {
+      const contractAddress = await (await contractInstance).options.address
+      const txObject = await (await contractInstance).methods.payCharity(proposal.id);
+
+      const requestId = 'pay_charity';
+      const dappName = 'Charlo';
+      const callback = Linking.makeUrl('ProfilePage');
+
+      requestTxSig(
+        kit,
+        [
+          {
+            tx: txObject,
+            from: kit.defaultAccount,
+            to: contractAddress,
+            feeCurrency: FeeCurrency.cUSD
+          }
+        ],
+        { requestId, dappName, callback }
+      );
+
+      const response = await waitForSignedTxs(requestId);
+      const rawTx = response.rawTxs[0];
+
+      // Send the signed transaction via the kit
+      const tx = await kit.connection.sendSignedTransaction(rawTx);
+      const receipt = await tx.waitReceipt();
+
+      dispatch(success(receipt));
+      dispatch(alertActions.success("Payment successful"));
+    } catch (err) {
+      dispatch(alertActions.error(err.toString()));
+      dispatch(failed());
+    }
+  };
+
+  function request() { return { type: profileConstants.PAY_CHARITY_REQUEST } };
+  function success(res) { return { type: profileConstants.PAY_CHARITY_SUCCESS, res } };
+  function failed() { return { type: profileConstants.PAY_CHARITY_FAILED } };
 }
 
 function grantRole(amount) {
@@ -137,9 +199,9 @@ function grantRole(amount) {
     }
   };
 
-  function request() { return { type: walletConstants.ROLE_REQUEST } };
-  function success(res) { return { type: walletConstants.ROLE_SUCCESS, res } };
-  function failed() { return { type: walletConstants.ROLE_FAILED } };
+  function request() { return { type: profileConstants.ROLE_REQUEST } };
+  function success(res) { return { type: profileConstants.ROLE_SUCCESS, res } };
+  function failed() { return { type: profileConstants.ROLE_FAILED } };
 }
 
 function getRole() {
@@ -177,9 +239,9 @@ function getRole() {
     }
   }
 
-  function request() { return { type: walletConstants.ROLE_CHECK_REQUEST}};
-  function success(role) { return { type: walletConstants.ROLE_CHECK_SUCCESS, role}};
-  function failed() { return { type: walletConstants.ROLE_CHECK_FAILED}};
+  function request() { return { type: profileConstants.ROLE_CHECK_REQUEST}};
+  function success(role) { return { type: profileConstants.ROLE_CHECK_SUCCESS, role}};
+  function failed() { return { type: profileConstants.ROLE_CHECK_FAILED}};
 }
 
 function getVotes() {
@@ -200,7 +262,7 @@ function getVotes() {
     }
   };
   
-  function request() { return { type: walletConstants.GET_VOTES_REQUEST } }
-  function success(votes) { return { type: walletConstants.GET_VOTES_SUCCESS, votes } }
-  function failed() { return { type: walletConstants.GET_VOTES_FAILED } }
+  function request() { return { type: profileConstants.GET_VOTES_REQUEST } }
+  function success(votes) { return { type: profileConstants.GET_VOTES_SUCCESS, votes } }
+  function failed() { return { type: profileConstants.GET_VOTES_FAILED } }
 }

@@ -13,7 +13,7 @@ export const ProposalsPage = ({ navigation }) => {
 
   const dispatch = useDispatch();
   const store = useSelector(state => state.proposal);
-  const wallet = useSelector(state => state.wallet);
+  const profile = useSelector(state => state.profile);
 
   const theme = useTheme();
 
@@ -59,7 +59,7 @@ export const ProposalsPage = ({ navigation }) => {
       <Layout style={{ flex: 1, alignItems: 'center', padding: 16 }}>
 
         {
-          wallet.isStakeholder ?
+          profile.isStakeholder ?
           <Button
             size='medium'
             style={{marginVertical: 8}}
@@ -83,7 +83,8 @@ export const ProposalsPage = ({ navigation }) => {
 
         <ViewProposalModal
           setVisible={setViewVisible}
-          visible={viewVisible}/>
+          visible={viewVisible}
+          isProfile='false'/>
 
       </Layout>
     </SafeAreaView>
