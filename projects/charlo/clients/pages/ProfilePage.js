@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { View, SafeAreaView } from 'react-native';
-import { Button, Card, Input, Layout, List, useTheme, Text, Spinner } from '@ui-kitten/components';
+import { Button, Card, Input, Layout, List, useTheme, Text, Spinner, ViewPager, Icon } from '@ui-kitten/components';
 import { useDispatch, useSelector } from 'react-redux';
 
 import { ViewProposalModal } from '../components';
@@ -9,7 +9,10 @@ import { contractInstance, kit } from '../root';
 
 export const ProfilePage = ({ navigation }) => {
   const [visible, setVisible] = React.useState(false);
-  const [votes, setVotes] = React.useState([]);
+  const [paidVotes, setPaidVotes] = React.useState([]);
+  const [payableVotes, setPayableVotes] = React.useState([]);
+  const [inVotingVotes, setInVotingVotes] = React.useState([]);
+  const [selectedIndex, setSelectedIndex] = React.useState(0);
 
   const dispatch = useDispatch();
   const profile = useSelector(state => state.profile);
@@ -43,14 +46,29 @@ export const ProfilePage = ({ navigation }) => {
   }, [profile.votes.length]);
 
   const getVotes = () => {
+    const today = new Date().getTime() / 1000;
     const stakeholderVotes = store.proposals.filter(
       function(e) {
         return this.indexOf(e[0]) >= 0;
       },
       profile.votes
     );
+
+    const stakePaidVotes = stakeholderVotes.filter(
+      (element) => element[7] == true
+    );
+
+    const stakePayable = stakeholderVotes.filter(
+      (element) => (element[2] <= today && element[7] == false)
+    );
+
+    const stakeInVoting = stakeholderVotes.filter(
+      (element) => (element[2] > today && element[7] == false)
+    );
     
-    setVotes(stakeholderVotes);
+    setPaidVotes(stakePaidVotes);
+    setPayableVotes(stakePayable);
+    setInVotingVotes(stakeInVoting);
   };
 
   const getProposal = (id) => {
@@ -63,6 +81,19 @@ export const ProfilePage = ({ navigation }) => {
     dispatch(proposalActions.getProposal(id));
 
     setVisible(true);
+  };
+
+  const shouldLoadComponent = (index) => index == selectedIndex;
+    
+  const handleRightClick = () => {
+    if (selectedIndex < 2) {
+      setSelectedIndex(selectedIndex + 1);
+    }
+  };
+  const handleLeftClick = () => {
+    if (selectedIndex > 0) {
+      setSelectedIndex(selectedIndex - 1);
+    }
   };
 
   const cardItem = (info) => {
@@ -86,9 +117,64 @@ export const ProfilePage = ({ navigation }) => {
     );
   };
 
+  const page = () => {
+    return(
+      <>
+        <Layout style={{flexDirection: 'row', justifyContent: 'space-around'}}>
+          <Button
+            appearance='ghost'
+            status='info'
+            accessoryLeft={leftIcon}
+            onPress={handleLeftClick}
+            />
+          <Text style={{alignSelf: 'center', marginVertical: 16}}>{selectedIndex == 0 ? 'In Voting' : selectedIndex == 1 ? 'Payable Proposals' : 'Paid Proposals'}</Text>
+          <Button
+            appearance='ghost'
+            status='info'
+            accessoryRight={rightIcon}
+            onPress={handleRightClick}
+            />
+        </Layout>
+        {
+          (profile.loading || !profile.isStakeholder) ?
+          <Text style={{backgroundColor: theme['color-basic-800']}}>{selectedIndex == 0 ? 'The list of "in voting" proposal is empty' : selectedIndex == 1 ? 'The list of "payable" proposal is empty' : 'The list of "paid" proposal is empty'}</Text> :
+          <List
+          style={{backgroundColor: theme['color-basic-800']}}
+          contentContainerStyle={{paddingHorizontal: 8, paddingVertical: 4}}
+          data={selectedIndex == 0 ? inVotingVotes : selectedIndex == 1 ? payableVotes : paidVotes}
+          renderItem={cardItem}/>
+        }
+      </>
+    );
+  };
+
+  const rightIcon = (props) => {
+    if (selectedIndex != 2) {
+      return(
+        <Icon
+          {...props}
+          name='arrowhead-right-outline'/>
+      );
+    }
+
+    return(null);
+  };
+
+  const leftIcon = (props) => {
+    if (selectedIndex != 0) {
+      return(
+        <Icon
+          {...props}
+          name='arrowhead-left-outline'/>
+      );
+    }
+    
+    return(null);
+  };
+
   return (
     <SafeAreaView style={{ flex: 1 }}>
-      <Layout style={{ flex: 1, alignItems: 'center', padding: 16 }}>
+      <Layout style={{ flex: 1, padding: 16 }}>
         <Card style={{flexDirection: 'column', justifyContent: 'space-between', borderColor: theme['color-basic-800']}}>
           <Input
             style={{marginVertical: 8}}
@@ -107,21 +193,23 @@ export const ProfilePage = ({ navigation }) => {
           </Button>
         </Card>
 
-        {
-          profile.loading ? <Spinner status='primary' size='giant' /> : null
-        }
+        <ViewPager style={{height: 480}}
+          selectedIndex={selectedIndex}
+          shouldLoadComponent={shouldLoadComponent}
+          onSelect={setSelectedIndex}>
 
-        <Layout style={{flex: 5}}>
-          {
-            (profile.loading || !profile.isStakeholder) ?
-            <Text>The list of proposal voted on is empty</Text> :
-            <List
-            style={{backgroundColor: theme['color-basic-800']}}
-            contentContainerStyle={{paddingHorizontal: 8, paddingVertical: 4}}
-            data={votes}
-            renderItem={cardItem}/>
-          }
-        </Layout>
+            <Layout level='2'>
+              {page()}
+            </Layout>
+
+            <Layout level='2'>
+              {page()}
+            </Layout>
+
+            <Layout level='2'>
+              {page()}
+            </Layout>
+          </ViewPager>
 
         <ViewProposalModal
           setVisible={setVisible}

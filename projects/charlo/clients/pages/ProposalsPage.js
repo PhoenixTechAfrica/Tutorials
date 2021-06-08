@@ -4,12 +4,13 @@ import { Layout, Button, Text, TopNavigation, Divider, Icon, Card, useTheme, Mod
 import { useDispatch, useSelector } from 'react-redux';
 
 import { CreateProposalModal, ViewProposalModal } from '../components';
-import { proposalActions } from '../store/actions';
+import { profileActions, proposalActions } from '../store/actions';
 import { kit } from '../root';
 
 export const ProposalsPage = ({ navigation }) => {
   const [createVisible, setCreateVisible] = React.useState(false);
   const [viewVisible, setViewVisible] = React.useState(false);
+  const [proposals, setProposals] = React.useState([])
 
   const dispatch = useDispatch();
   const store = useSelector(state => state.proposal);
@@ -25,7 +26,34 @@ export const ProposalsPage = ({ navigation }) => {
 
   React.useEffect(() => {
     dispatch(proposalActions.getAllProposals());
+    dispatch(profileActions.getVotes());
   }, []);
+
+  React.useEffect(() => {
+    getProposals();
+  }, [store.proposals.length, profile.votes.length]);
+
+  const getProposals = () => {
+    const today = new Date().getTime() / 1000;
+    const allProposals = store.proposals.filter(
+      (element) => element[7] == false && element[2] > today
+    );
+
+    const filteredProposals = allProposals.filter(
+      function(e) {
+        return this.indexOf(e[0]) < 0;
+      },
+      profile.votes
+    );
+
+    setProposals(filteredProposals);
+  };
+
+  const getProposal = (id) => {
+    dispatch(proposalActions.getProposal(id));
+
+    setViewVisible(true);
+  };
 
   const chaFooter = (props, info) => {
     return(
@@ -48,12 +76,6 @@ export const ProposalsPage = ({ navigation }) => {
     );
   };
 
-  const getProposal = (id) => {
-    dispatch(proposalActions.getProposal(id));
-
-    setViewVisible(true);
-  };
-
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <Layout style={{ flex: 1, alignItems: 'center', padding: 16 }}>
@@ -73,7 +95,7 @@ export const ProposalsPage = ({ navigation }) => {
           <List
           style={{backgroundColor: theme['color-basic-800']}}
           contentContainerStyle={{paddingHorizontal: 8, paddingVertical: 4}}
-          data={store.proposals}
+          data={proposals}
           renderItem={cardItem}/> : <Text>The list of proposal is empty</Text>
         }
 
